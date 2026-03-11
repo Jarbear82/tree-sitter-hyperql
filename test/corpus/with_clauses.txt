@@ -1,0 +1,79 @@
+==================
+With Bare Variable
+==================
+MATCH (p:Person) WITH p RETURN p;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (with_clause
+          (with_entry
+            (expression (primary_expression (identifier))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression (primary_expression (identifier)))))))))
+
+==================
+With Aliased Expression
+==================
+MATCH (p:Person)
+WITH p, p.age AS years
+RETURN p, years;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (with_clause
+          (with_entry
+            (expression (primary_expression (identifier))))
+          (with_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier))))
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression (primary_expression (identifier))))
+          (return_entry
+            (expression (primary_expression (identifier)))))))))
+
+==================
+With Block Syntax
+==================
+MATCH (p:Person)
+WITH [p, p.name AS display]
+RETURN display;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (with_clause
+          (with_entry
+            (expression (primary_expression (identifier))))
+          (with_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier))))
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression (primary_expression (identifier)))))))))

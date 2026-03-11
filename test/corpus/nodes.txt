@@ -1,0 +1,224 @@
+==================
+Basic Node
+==================
+DEFINE NODE Person { name, age };
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (node_body
+          (node_entry
+            (identifier))
+          (node_entry
+            (identifier)))))))
+
+==================
+Abstract Node
+==================
+DEFINE ABSTRACT NODE Entity { id, created_at };
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (node_body
+          (node_entry
+            (identifier))
+          (node_entry
+            (identifier)))))))
+
+==================
+Node With Single Extends
+==================
+DEFINE NODE Employee EXTENDS [Person] { employee_id, hire_date };
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (extends_clause
+          (identifier))
+        (node_body
+          (node_entry
+            (identifier))
+          (node_entry
+            (identifier)))))))
+
+==================
+Node With Multiple Extends
+==================
+DEFINE NODE Manager EXTENDS [Employee, Supervisor] { department };
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (extends_clause
+          (identifier)
+          (identifier))
+        (node_body
+          (node_entry
+            (identifier)))))))
+
+==================
+Node With Display Metadata
+==================
+DEFINE NODE Person { name, age } { display: name };
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (node_body
+          (node_entry (identifier))
+          (node_entry (identifier)))
+        (metadata_block
+          (display_meta
+            (identifier)))))))
+
+==================
+Node With Array Constraints
+==================
+DEFINE NODE BankAccount { balance, overdraft_limit } {
+  constraints: [.balance >= 0, .overdraft_limit >= 0]
+};
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (node_body
+          (node_entry (identifier))
+          (node_entry (identifier)))
+        (metadata_block
+          (constraints_meta
+            (array_constraints
+              (expression
+                (binary_expression
+                  (expression
+                    (primary_expression
+                      (enum_shorthand (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal (number))))))
+              (expression
+                (binary_expression
+                  (expression
+                    (primary_expression
+                      (enum_shorthand (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal (number)))))))))))))
+
+==================
+Node With Named Constraints
+==================
+DEFINE NODE Person { name, age } {
+  constraints: { has_name: .name != "", valid_age: .age >= 0 }
+};
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (node_body
+          (node_entry (identifier))
+          (node_entry (identifier)))
+        (metadata_block
+          (constraints_meta
+            (object_constraints
+              (identifier)
+              (expression
+                (binary_expression
+                  (expression
+                    (primary_expression
+                      (enum_shorthand (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal (string))))))
+              (identifier)
+              (expression
+                (binary_expression
+                  (expression
+                    (primary_expression
+                      (enum_shorthand (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal (number)))))))))))))
+
+==================
+Node With Display And Constraints
+==================
+DEFINE NODE Article { title, body } {
+  display: title,
+  constraints: [.title != ""]
+};
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (node_body
+          (node_entry (identifier))
+          (node_entry (identifier)))
+        (metadata_block
+          (display_meta (identifier))
+          (constraints_meta
+            (array_constraints
+              (expression
+                (binary_expression
+                  (expression
+                    (primary_expression
+                      (enum_shorthand (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal (string))))))))))))))
+
+==================
+Node With Field Default Override
+==================
+DEFINE NODE AdminUser { name, role DEFAULT "admin" };
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (identifier)
+        (node_body
+          (node_entry (identifier))
+          (node_entry
+            (identifier)
+            (expression
+              (primary_expression
+                (literal (string))))))))))
+
+==================
+Batch Node Definition
+==================
+DEFINE NODE [
+  Dog { name, breed },
+  Cat { name, indoor }
+];
+---
+(source_file
+  (statement
+    (definition_statement
+      (node_definition
+        (batch_node_list
+          (identifier)
+          (node_body
+            (node_entry (identifier))
+            (node_entry (identifier)))
+          (identifier)
+          (node_body
+            (node_entry (identifier))
+            (node_entry (identifier))))))))

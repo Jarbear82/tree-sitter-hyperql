@@ -1,0 +1,64 @@
+==================
+Begin And Commit
+==================
+BEGIN;
+COMMIT;
+---
+(source_file
+  (statement
+    (transaction_statement))
+  (statement
+    (transaction_statement)))
+
+==================
+Rollback
+==================
+ROLLBACK;
+---
+(source_file
+  (statement
+    (transaction_statement)))
+
+==================
+Begin With Isolation Level
+==================
+BEGIN ISOLATION LEVEL SERIALIZABLE;
+---
+(source_file
+  (statement
+    (transaction_statement
+      (identifier))))
+
+==================
+Begin On Error Continue
+==================
+BEGIN ON ERROR CONTINUE;
+---
+(source_file
+  (statement
+    (transaction_statement)))
+
+==================
+Repeatable Read Isolation
+==================
+BEGIN ISOLATION LEVEL REPEATABLE_READ;
+COMMIT;
+---
+(source_file
+  (statement
+    (transaction_statement
+      (identifier)))
+  (statement
+    (transaction_statement)))
+
+==================
+Set Session Isolation
+==================
+SET ISOLATION LEVEL READ_COMMITTED;
+---
+(source_file
+  (statement
+    (mutation_statement
+      (set_statement
+        (set_isolation
+          (identifier))))))

@@ -1,0 +1,64 @@
+==================
+Basic Struct
+==================
+DEFINE STRUCT Address { street, city, zip_code };
+---
+(source_file
+  (statement
+    (definition_statement
+      (struct_definition
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)))))
+
+==================
+Single Field Struct
+==================
+DEFINE STRUCT Coordinate { point };
+---
+(source_file
+  (statement
+    (definition_statement
+      (struct_definition
+        (identifier)
+        (identifier)))))
+
+==================
+Basic Trait
+==================
+DEFINE TRAIT Nameable { first_name, last_name };
+---
+(source_file
+  (statement
+    (definition_statement
+      (trait_definition
+        (identifier)
+        (identifier)
+        (identifier)))))
+
+==================
+Single Field Trait
+==================
+DEFINE TRAIT Timestamped { created_at };
+---
+(source_file
+  (statement
+    (definition_statement
+      (trait_definition
+        (identifier)
+        (identifier)))))
+
+==================
+Multi-Field Trait
+==================
+DEFINE TRAIT Auditable { created_at, updated_at, created_by };
+---
+(source_file
+  (statement
+    (definition_statement
+      (trait_definition
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)))))

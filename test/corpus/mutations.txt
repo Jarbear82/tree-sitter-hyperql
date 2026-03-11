@@ -1,0 +1,170 @@
+==================
+Set Field Value
+==================
+MATCH (p:Person { name: "Alice" }) SET p.age = 31;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression (primary_expression (literal (string))))))))))
+  (statement
+    (mutation_statement
+      (set_statement
+        (set_assignments
+          (set_assignment
+            (member_access
+              (expression (primary_expression (identifier)))
+              (identifier))
+            (expression (primary_expression (literal (number))))))))))
+
+==================
+Set Bulk Update
+==================
+MATCH (p:Person) SET p += { active = true };
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))))
+  (statement
+    (mutation_statement
+      (set_statement
+        (set_assignments
+          (set_assignment
+            (identifier)
+            (expression
+              (primary_expression
+                (object_literal
+                  (identifier)
+                  (expression (primary_expression (literal (boolean))))))))))))))
+
+==================
+Set Role Append
+==================
+MATCH (c:Commute) SET c.passengers += new_rider;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))))
+  (statement
+    (mutation_statement
+      (set_statement
+        (set_assignments
+          (set_assignment
+            (member_access
+              (expression (primary_expression (identifier)))
+              (identifier))
+            (expression (primary_expression (identifier)))))))))
+
+==================
+Set Role Remove
+==================
+MATCH (c:Commute) SET c.passengers -= old_rider;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))))
+  (statement
+    (mutation_statement
+      (set_statement
+        (set_assignments
+          (set_assignment
+            (member_access
+              (expression (primary_expression (identifier)))
+              (identifier))
+            (expression (primary_expression (identifier)))))))))
+
+==================
+Delete Node
+==================
+MATCH (p:Person { name: "Temp" }) DELETE p;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression (primary_expression (literal (string)))))))))))
+  (statement
+    (mutation_statement
+      (delete_statement
+        (identifier)))))
+
+==================
+Detach Delete Node
+==================
+MATCH (p:Person { name: "Old" }) DETACH DELETE p;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression (primary_expression (literal (string)))))))))))
+  (statement
+    (mutation_statement
+      (delete_statement
+        (identifier)))))
+
+==================
+Merge Upsert
+==================
+MERGE (e:Enrollment { student => s, course => c }) ON CREATE SET e.date = "2025-01-01";
+---
+(source_file
+  (statement
+    (mutation_statement
+      (merge_statement
+        (identifier)
+        (identifier)
+        (pattern_object
+          (pattern_role (identifier) (identifier))
+          (pattern_role (identifier) (identifier)))
+        (merge_action
+          (set_assignments
+            (set_assignment
+              (member_access
+                (expression (primary_expression (identifier)))
+                (identifier))
+              (expression (primary_expression (literal (string)))))))))))
+
+==================
+Merge Object
+==================
+MERGE OBJECT p WITH $updates;
+---
+(source_file
+  (statement
+    (mutation_statement
+      (merge_statement
+        (identifier)
+        (parameter_ref
+          (identifier))))))

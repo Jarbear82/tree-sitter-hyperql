@@ -1,0 +1,158 @@
+==================
+Basic String Field
+==================
+DEFINE FIELD name: String;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))))))
+
+==================
+Nullable Field
+==================
+DEFINE FIELD nickname: String?;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))))))
+
+==================
+Field With Index Decorator
+==================
+DEFINE FIELD email: String @index;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))
+        (decorator)))))
+
+==================
+Field With Unique And Index
+==================
+DEFINE FIELD id: UUID @unique @index;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))
+        (decorator)
+        (decorator)))))
+
+==================
+Field With Literal Default
+==================
+DEFINE FIELD active: Bool @index DEFAULT true;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))
+        (decorator)
+        (literal
+          (boolean))))))
+
+==================
+Field With String Default
+==================
+DEFINE FIELD status: String DEFAULT "pending";
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))
+        (literal
+          (string))))))
+
+==================
+List Type Field
+==================
+DEFINE FIELD tags: List<String>;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier)
+          (type
+            (identifier)))))))
+
+==================
+Int Field With Numeric Default
+==================
+DEFINE FIELD age: Int DEFAULT 0;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))
+        (literal
+          (number))))))
+
+==================
+Cold Field
+==================
+DEFINE FIELD body: String? @cold;
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))
+        (decorator)))))
+
+==================
+Batch Field Definition
+==================
+DEFINE FIELD [
+  first_name: String,
+  last_name: String,
+  age: Int
+];
+---
+(source_file
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier)))))
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier)))))
+  (statement
+    (definition_statement
+      (field_definition
+        (identifier)
+        (type
+          (identifier))))))

@@ -1,0 +1,137 @@
+==================
+Row Number Window
+==================
+MATCH (s:Sale) RETURN s.date, ROW_NUMBER() OVER () AS row_num;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier))))
+            (identifier)))))))
+
+==================
+Rank Over Partition
+==================
+MATCH (s:Sale)
+RETURN
+  s.product,
+  s.amount,
+  RANK() OVER (PARTITION BY s.product ORDER BY s.amount DESC) AS rank;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call (identifier))))
+            (identifier)))))))
+
+==================
+Sum Running Total
+==================
+MATCH (s:Sale)
+RETURN s.date, s.amount, SUM(s.amount) OVER (ORDER BY s.date) AS running_total;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression (primary_expression (identifier)))
+                        (identifier)))))))
+            (identifier)))))))
+
+==================
+Lag Navigation Function
+==================
+MATCH (m:MonthlyMetric)
+RETURN m.month, m.revenue, LAG(m.revenue, 1) OVER (ORDER BY m.month) AS prev;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression (primary_expression (identifier)))
+                        (identifier))))
+                  (expression (primary_expression (literal (number)))))))
+            (identifier)))))))

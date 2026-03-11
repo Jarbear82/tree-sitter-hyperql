@@ -1,0 +1,68 @@
+==================
+Simple Role No Constraint
+==================
+DEFINE ROLE owner ALLOWS Person;
+---
+(source_file
+  (statement
+    (definition_statement
+      (role_definition
+        (identifier)
+        (role_allows_list
+          (type
+            (identifier)))))))
+
+==================
+Role With Multi-Type Allows
+==================
+DEFINE ROLE driver ALLOWS Person, AI;
+---
+(source_file
+  (statement
+    (definition_statement
+      (role_definition
+        (identifier)
+        (role_allows_list
+          (type (identifier))
+          (type (identifier)))))))
+
+==================
+Batch Role Same Allows
+==================
+DEFINE ROLE [organizer, attendee] ALLOWS Person;
+---
+(source_file
+  (statement
+    (definition_statement
+      (role_definition
+        (batch_id_list
+          (identifier)
+          (identifier))
+        (type
+          (identifier))))))
+
+==================
+Role With Constraint Block
+==================
+DEFINE ROLE licensed_driver ALLOWS Person {
+  .licensed == true
+};
+---
+(source_file
+  (statement
+    (definition_statement
+      (role_definition
+        (identifier)
+        (role_allows_list
+          (type (identifier))
+          (constraint_block
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (enum_shorthand
+                      (identifier))))
+                (expression
+                  (primary_expression
+                    (literal
+                      (boolean)))))))))))))

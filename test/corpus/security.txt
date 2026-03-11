@@ -1,0 +1,104 @@
+==================
+Define Access Role With Grant
+==================
+DEFINE ACCESS ROLE ReadOnly [
+  GRANT NAMESPACE Core PERMISSIONS [READ]
+];
+---
+(source_file
+  (statement
+    (definition_statement
+      (access_role_definition
+        (identifier)
+        (access_entry
+          (identifier)
+          (identifier))))))
+
+==================
+Define Access Role Grant And Deny
+==================
+DEFINE ACCESS ROLE DataEditor [
+  GRANT NAMESPACE Core PERMISSIONS [READ, WRITE],
+  DENY NAMESPACE Core.Audit PERMISSIONS [WRITE]
+];
+---
+(source_file
+  (statement
+    (definition_statement
+      (access_role_definition
+        (identifier)
+        (access_entry
+          (identifier)
+          (identifier)
+          (identifier))
+        (access_entry
+          (identifier)
+          (identifier)
+          (identifier))))))
+
+==================
+Create User
+==================
+CREATE USER analyst WITH PASSWORD "secret123";
+---
+(source_file
+  (statement
+    (mutation_statement
+      (create_statement
+        (identifier)
+        (string)))))
+
+==================
+Create User With Roles
+==================
+CREATE USER analyst WITH PASSWORD "secret" ROLES [ReadOnly, DataEditor];
+---
+(source_file
+  (statement
+    (mutation_statement
+      (create_statement
+        (identifier)
+        (string)
+        (identifier)
+        (identifier)))))
+
+==================
+Define Access Policy
+==================
+DEFINE ACCESS POLICY OwnOrdersOnly ON Order FOR ACCESS ROLE CustomerRole USING (owner_id == $current_user);
+---
+(source_file
+  (statement
+    (definition_statement
+      (access_policy_definition
+        (identifier)
+        (identifier)
+        (identifier)
+        (expression
+          (binary_expression
+            (expression (primary_expression (identifier)))
+            (expression (primary_expression (parameter_ref (identifier))))))))))
+
+==================
+Grant Access Role To User
+==================
+GRANT ACCESS ROLE ReadOnly TO analyst;
+---
+(source_file
+  (statement
+    (introspection_statement
+      (identifier)
+      (identifier)
+      (identifier))))
+
+==================
+Alter User Add Roles
+==================
+ALTER USER analyst ADD ROLES [DataEditor];
+---
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (identifier)))))

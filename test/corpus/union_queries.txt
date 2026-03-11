@@ -1,0 +1,69 @@
+==================
+Union Two Queries
+==================
+MATCH (p:Person) RETURN p.name
+UNION
+MATCH (e:Employee) RETURN e.name;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))))
+      (query_clause
+        (union_clause))
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier))))))))))
+
+==================
+Union All Two Queries
+==================
+MATCH (p:Person) RETURN p.id
+UNION ALL
+MATCH (d:Device) RETURN d.id;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier)))))))
+      (query_clause
+        (union_clause))
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression (primary_expression (identifier)))
+                  (identifier))))))))))

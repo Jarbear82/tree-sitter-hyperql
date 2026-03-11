@@ -1,0 +1,215 @@
+==================
+Null Coalescing Operator
+==================
+MATCH (p:Person) RETURN p.nickname ?? p.first_name;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression (primary_expression (identifier)))
+                      (identifier))))
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression (primary_expression (identifier)))
+                      (identifier))))))))))))
+
+==================
+Safe Navigation Operator
+==================
+MATCH (p:Person) RETURN p.address?.city;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression (primary_expression (identifier)))
+                        (identifier))))
+                  (identifier))))))))))
+
+==================
+Case Expression
+==================
+MATCH (p:Person)
+RETURN CASE
+  WHEN p.age < 18 THEN "Minor"
+  WHEN p.age < 65 THEN "Adult"
+  ELSE "Senior"
+END AS age_group;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (conditional_expression
+                (case_expression
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (expression (primary_expression (identifier)))
+                            (identifier))))
+                      (expression (primary_expression (literal (number))))))
+                  (expression (primary_expression (literal (string))))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (expression (primary_expression (identifier)))
+                            (identifier))))
+                      (expression (primary_expression (literal (number))))))
+                  (expression (primary_expression (literal (string))))
+                  (expression (primary_expression (literal (string)))))))
+            (identifier)))))))
+
+==================
+IF Expression
+==================
+MATCH (p:Person)
+RETURN IF p.active THEN "Active" ELSE "Inactive" AS status;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (conditional_expression
+                (if_expression
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression (primary_expression (identifier)))
+                        (identifier))))
+                  (expression (primary_expression (literal (string))))
+                  (expression (primary_expression (literal (string)))))))
+            (identifier)))))))
+
+==================
+Enum Shorthand
+==================
+MATCH (p:Person) WHERE p.status == .ACTIVE RETURN p;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression (primary_expression (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (enum_shorthand (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression (primary_expression (identifier)))))))))
+
+==================
+Bitwise Or Flags
+==================
+MATCH (u:User) WHERE u.permissions == .READ | .WRITE RETURN u;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression (primary_expression (identifier)))
+                    (identifier))))
+              (expression
+                (binary_expression
+                  (expression
+                    (primary_expression
+                      (enum_shorthand (identifier))))
+                  (expression
+                    (primary_expression
+                      (enum_shorthand (identifier))))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression (primary_expression (identifier)))))))))
+
+==================
+Chained Null Coalescing
+==================
+MATCH (p:Person) RETURN p.nickname ?? p.preferred_name ?? p.first_name;
+---
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern (identifier) (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (binary_expression
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (member_access
+                          (expression (primary_expression (identifier)))
+                          (identifier))))
+                    (expression
+                      (primary_expression
+                        (member_access
+                          (expression (primary_expression (identifier)))
+                          (identifier))))))
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression (primary_expression (identifier)))
+                      (identifier))))))))))))
