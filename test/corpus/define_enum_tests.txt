@@ -1,0 +1,197 @@
+==================
+Enum Plain Singular
+==================
+DEFINE ENUM Status {
+    ACTIVE,
+    INACTIVE,
+    PENDING
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (enum_definition
+          (enum_entry_full
+            (identifier)
+            (enum_body
+              (identifier)
+              (identifier)
+              (identifier))))))))
+
+==================
+Enum Backed INT Singular
+==================
+DEFINE ENUM Priority<INT> {
+    LOW = 1,
+    MEDIUM = 2,
+    HIGH = 3
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (enum_definition
+          (enum_entry_full
+            (identifier)
+            (primitive_type)
+            (enum_body
+              (identifier)
+              (literal
+                (number))
+              (identifier)
+              (literal
+                (number))
+              (identifier)
+              (literal
+                (number)))))))))
+
+==================
+Enum Backed STRING Singular
+==================
+DEFINE ENUM Color<STRING> {
+    RED = "red",
+    GREEN = "green",
+    BLUE = "blue"
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (enum_definition
+          (enum_entry_full
+            (identifier)
+            (primitive_type)
+            (enum_body
+              (identifier)
+              (literal
+                (string))
+              (identifier)
+              (literal
+                (string))
+              (identifier)
+              (literal
+                (string)))))))))
+
+==================
+Enum Backed DECIMAL Singular
+==================
+DEFINE ENUM Rate<DECIMAL> {
+    HALF = 0.5d,
+    FULL = 1.0d
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (enum_definition
+          (enum_entry_full
+            (identifier)
+            (primitive_type)
+            (enum_body
+              (identifier)
+              (literal
+                (number))
+              (identifier)
+              (literal
+                (number)))))))))
+
+==================
+Enum Backed FLAGS Singular
+==================
+DEFINE ENUM Permission<FLAGS> {
+    READ,
+    WRITE,
+    EXECUTE,
+    ADMIN
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (enum_definition
+          (enum_entry_full
+            (identifier)
+            (primitive_type)
+            (enum_body
+              (identifier)
+              (identifier)
+              (identifier)
+              (identifier))))))))
+
+==================
+Enum Batch
+==================
+DEFINE ENUM [
+    Status { ACTIVE, INACTIVE, PENDING },
+    Priority<INT> { LOW = 1, MEDIUM = 2, HIGH = 3 },
+    Color<STRING> { RED = "red", GREEN = "green", BLUE = "blue" },
+    Rate<DECIMAL> { HALF = 0.5d, FULL = 1.0d },
+    Permission<FLAGS> { READ, WRITE, EXECUTE }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (enum_definition
+          (enum_batch
+            (enum_entry_full
+              (identifier)
+              (enum_body
+                (identifier)
+                (identifier)
+                (identifier)))
+            (enum_entry_full
+              (identifier)
+              (primitive_type)
+              (enum_body
+                (identifier)
+                (literal
+                  (number))
+                (identifier)
+                (literal
+                  (number))
+                (identifier)
+                (literal
+                  (number))))
+            (enum_entry_full
+              (identifier)
+              (primitive_type)
+              (enum_body
+                (identifier)
+                (literal
+                  (string))
+                (identifier)
+                (literal
+                  (string))
+                (identifier)
+                (literal
+                  (string))))
+            (enum_entry_full
+              (identifier)
+              (primitive_type)
+              (enum_body
+                (identifier)
+                (literal
+                  (number))
+                (identifier)
+                (literal
+                  (number))))
+            (enum_entry_full
+              (identifier)
+              (primitive_type)
+              (enum_body
+                (identifier)
+                (identifier)
+                (identifier)))))))))

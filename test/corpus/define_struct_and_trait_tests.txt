@@ -1,0 +1,68 @@
+==================
+Struct Singular
+==================
+DEFINE STRUCT Address {
+    street,
+    city,
+    zip
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (struct_definition
+          (identifier)
+          (identifier)
+          (identifier)
+          (identifier))))))
+
+==================
+Struct Empty
+==================
+DEFINE STRUCT Empty {};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (struct_definition
+          (identifier))))))
+
+==================
+Trait Singular
+==================
+DEFINE TRAIT Auditable {
+    created_at,
+    updated_at,
+    created_by
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (trait_definition
+          (identifier)
+          (identifier)
+          (identifier)
+          (identifier))))))
+
+==================
+Trait Minimal
+==================
+DEFINE TRAIT Identifiable {
+    external_id
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (trait_definition
+          (identifier)
+          (identifier))))))

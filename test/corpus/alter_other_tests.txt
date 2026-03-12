@@ -1,0 +1,116 @@
+==================
+Alter Schema Add
+==================
+ALTER SCHEMA HRSchema [
+    ADD Employee
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_schema_entry
+          (identifier))))))
+
+==================
+Alter Schema Drop
+==================
+ALTER SCHEMA HRSchema [
+    DROP OldNode
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_schema_entry
+          (identifier))))))
+
+==================
+Alter Schema Rename
+==================
+ALTER SCHEMA HRSchema [
+    RENAME OldField TO NewField
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_schema_entry
+          (identifier)
+          (identifier))))))
+
+==================
+Alter User Set Password
+==================
+ALTER USER alice SET PASSWORD "newS3cr3t!";
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (string)))))
+
+==================
+Alter User Add Roles
+==================
+ALTER USER alice ADD ROLES [AdminRole, AuditorRole];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (identifier)
+        (identifier)))))
+
+==================
+Alter User Remove Roles
+==================
+ALTER USER alice REMOVE ROLES [GuestRole];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (identifier)))))
+
+==================
+Alter Namespace Strict Permissions On
+==================
+ALTER NAMESPACE Core.App SET STRICT_PERMISSIONS ON;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (dotted_identifier
+          (identifier)
+          (identifier))))))
+
+==================
+Alter Namespace Strict Permissions Off
+==================
+ALTER NAMESPACE Core.App SET STRICT_PERMISSIONS OFF;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (dotted_identifier
+          (identifier)
+          (identifier))))))

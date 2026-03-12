@@ -1,0 +1,516 @@
+==================
+Node Singular Minimal
+==================
+DEFINE NODE Person {};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body)))))))
+
+==================
+Node Singular With Fields
+==================
+DEFINE NODE Person {
+    name,
+    age,
+    email
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))))))))
+
+==================
+Node Singular With Computed Field
+==================
+DEFINE NODE Person {
+    name,
+    age,
+    full_name: String @computed(name + " " + surname)
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_computed_entry
+                  (identifier)
+                  (type
+                    (identifier))
+                  (decorator
+                    (expression
+                      (binary_expression
+                        (expression
+                          (binary_expression
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (expression
+                              (primary_expression
+                                (literal
+                                  (string))))))
+                        (expression
+                          (primary_expression
+                            (identifier)))))))))))))))
+
+==================
+Node Singular With Field Default Override
+==================
+DEFINE NODE Person {
+    score DEFAULT 100,
+    level DEFAULT 1
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number))))))
+              (node_entry
+                (node_storage_entry
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number)))))))))))))
+
+==================
+Node Singular With EXTENDS
+==================
+DEFINE NODE Employee EXTENDS Person {
+    name,
+    age,
+    department,
+    hire_date
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (extends_clause
+              (identifier))
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))))))))
+
+==================
+Node Singular With Multi-Extends
+==================
+DEFINE NODE Manager EXTENDS [Employee, Auditable] {
+    reports_count
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (extends_clause
+              (identifier)
+              (identifier))
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier))))))))))
+
+==================
+Node Singular With Metadata Display
+==================
+DEFINE NODE Person {
+    name,
+    age
+} {
+    display: name
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))
+            (metadata_block
+              (display_meta
+                (identifier)))))))))
+
+==================
+Node Singular With Metadata Constraints Array
+==================
+DEFINE NODE Person {
+    name,
+    age
+} {
+    constraints: [
+        age >= 0,
+        age <= 150
+    ]
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))
+            (metadata_block
+              (constraints_meta
+                (constraint_array
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number)))))))))))))))
+
+==================
+Node Singular With Metadata Constraints Object
+==================
+DEFINE NODE Person {
+    name,
+    age
+} {
+    constraints: {
+        non_negative_age: age >= 0,
+        name_required: LENGTH(name) > 0
+    }
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))
+            (metadata_block
+              (constraints_meta
+                (constraint_object
+                  (identifier)
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (identifier)
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (function_call
+                            (identifier)
+                            (expression
+                              (primary_expression
+                                (identifier))))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number)))))))))))))))
+
+==================
+Node Singular With Full Metadata
+==================
+DEFINE NODE Employee EXTENDS Person {
+    name,
+    age,
+    department,
+    salary
+} {
+    display: name,
+    constraints: [
+        salary >= 0,
+        LENGTH(department) > 0
+    ]
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (extends_clause
+              (identifier))
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))
+            (metadata_block
+              (display_meta
+                (identifier))
+              (constraints_meta
+                (constraint_array
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (function_call
+                            (identifier)
+                            (expression
+                              (primary_expression
+                                (identifier))))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number)))))))))))))))
+
+==================
+Abstract Node Singular
+==================
+ABSTRACT NODE Vehicle {
+    make,
+    model,
+    year
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))))))))
+
+==================
+Node Batch Two Types
+==================
+DEFINE NODE [
+    Person { name, age },
+    Dog { name, breed }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_batch
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))))))))
+
+==================
+Node Batch With Extends And Metadata
+==================
+DEFINE NODE [
+    Animal { name, species },
+    Dog EXTENDS Animal { breed } { display: name },
+    Cat EXTENDS Animal { indoor }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_batch
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))
+            (node_entry_full
+              (identifier)
+              (extends_clause
+                (identifier))
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier))))
+              (metadata_block
+                (display_meta
+                  (identifier))))
+            (node_entry_full
+              (identifier)
+              (extends_clause
+                (identifier))
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))))))))
+
+==================
+Abstract Node In Batch
+==================
+DEFINE NODE [
+    Vehicle { make, model },
+    ABSTRACT AbstractAnimal { species }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_batch
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))))))))

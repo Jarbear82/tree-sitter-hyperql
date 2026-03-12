@@ -1,0 +1,126 @@
+==================
+Exists Subquery
+==================
+MATCH (p:Person)
+WHERE EXISTS (
+    MATCH (p:Person)
+    WHERE p.active == true
+    RETURN p
+)
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (primary_expression
+              (subquery_expression
+                (query_clause
+                  (match_clause
+                    (pattern
+                      (identifier)
+                      (identifier))))
+                (query_clause
+                  (where_clause
+                    (expression
+                      (binary_expression
+                        (expression
+                          (primary_expression
+                            (member_access
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (identifier))))
+                        (expression
+                          (primary_expression
+                            (literal
+                              (boolean))))))))
+                (query_clause
+                  (return_clause
+                    (return_entry
+                      (expression
+                        (primary_expression
+                          (identifier)))))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+In Subquery
+==================
+MATCH (p:Person)
+WHERE p.department IN (
+    MATCH (d:Department)
+    WHERE d.active == true
+    RETURN d.name
+)
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (primary_expression
+              (subquery_expression
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (identifier))))
+                (query_clause
+                  (match_clause
+                    (pattern
+                      (identifier)
+                      (identifier))))
+                (query_clause
+                  (where_clause
+                    (expression
+                      (binary_expression
+                        (expression
+                          (primary_expression
+                            (member_access
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (identifier))))
+                        (expression
+                          (primary_expression
+                            (literal
+                              (boolean))))))))
+                (query_clause
+                  (return_clause
+                    (return_entry
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (identifier))))))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))

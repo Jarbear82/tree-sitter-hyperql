@@ -1,0 +1,350 @@
+==================
+Mixed Define Field And Node
+==================
+DEFINE [
+    FIELD name: String,
+    NODE Person { name }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (mixed_definition_batch
+        (definition_item
+          (field_entry
+            (identifier)
+            (type
+              (identifier))))
+        (definition_item
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier))))))))))
+
+==================
+Mixed Define Field Enum Node Edge
+==================
+DEFINE [
+    FIELD name: String,
+    FIELD age: Int,
+    ENUM Status { ACTIVE, INACTIVE },
+    NODE Person { name, age },
+    EDGE Knows {
+        from -> (1),
+        to -> (1)
+    }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (mixed_definition_batch
+        (definition_item
+          (field_entry
+            (identifier)
+            (type
+              (identifier))))
+        (definition_item
+          (field_entry
+            (identifier)
+            (type
+              (identifier))))
+        (definition_item
+          (enum_entry_full
+            (identifier)
+            (enum_body
+              (identifier)
+              (identifier))))
+        (definition_item
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier)))
+              (node_entry
+                (node_storage_entry
+                  (identifier))))))
+        (definition_item
+          (edge_entry_full
+            (identifier)
+            (edge_body
+              (edge_entry
+                (role_entry
+                  (identifier)
+                  (cardinality
+                    (number))))
+              (edge_entry
+                (role_entry
+                  (identifier)
+                  (cardinality
+                    (number)))))))))))
+
+==================
+Mixed Define Field Node Role Edge
+==================
+DEFINE [
+    FIELD [name: String, age: Int, start_date: Date],
+    NODE [Person { name, age }, Company { name }],
+    ROLE [employee ALLOWS Person, employer ALLOWS Company],
+    EDGE Employment {
+        employee -> (1),
+        employer -> (1),
+        start_date
+    }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (mixed_definition_batch
+        (definition_item
+          (field_batch
+            (field_entry
+              (identifier)
+              (type
+                (identifier)))
+            (field_entry
+              (identifier)
+              (type
+                (identifier)))
+            (field_entry
+              (identifier)
+              (type
+                (identifier)))))
+        (definition_item
+          (node_batch
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))))
+        (definition_item
+          (role_batch
+            (role_entry_full
+              (identifier)
+              (role_allows_list
+                (identifier)))
+            (role_entry_full
+              (identifier)
+              (role_allows_list
+                (identifier)))))
+        (definition_item
+          (edge_entry_full
+            (identifier)
+            (edge_body
+              (edge_entry
+                (role_entry
+                  (identifier)
+                  (cardinality
+                    (number))))
+              (edge_entry
+                (role_entry
+                  (identifier)
+                  (cardinality
+                    (number))))
+              (edge_entry
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))))))))
+
+==================
+Mixed Define All Types
+==================
+DEFINE [
+    FIELD [
+        name: String @index,
+        score: Float DEFAULT 0.0,
+        active: Bool DEFAULT true
+    ],
+    ENUM Priority<INT> { LOW = 1, MEDIUM = 2, HIGH = 3 },
+    STRUCT Address { street, city, zip },
+    ROLE [
+        owner ALLOWS Person,
+        passenger ALLOWS [Person, AI]
+    ],
+    NODE [
+        Person { name, score, active },
+        AI { name, active }
+    ],
+    EDGE Rides {
+        owner -> (1),
+        passenger -> (1..*),
+        start_date
+    },
+    INDEX [
+        idx_person_name ON Person (name),
+        idx_ai_name ON AI (name)
+    ]
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (mixed_definition_batch
+        (definition_item
+          (field_batch
+            (field_entry
+              (identifier)
+              (type
+                (identifier))
+              (decorator))
+            (field_entry
+              (identifier)
+              (type
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (number)))))
+            (field_entry
+              (identifier)
+              (type
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (boolean)))))))
+        (definition_item
+          (enum_entry_full
+            (identifier)
+            (primitive_type)
+            (enum_body
+              (identifier)
+              (literal
+                (number))
+              (identifier)
+              (literal
+                (number))
+              (identifier)
+              (literal
+                (number)))))
+        (definition_item
+          (identifier)
+          (identifier)
+          (identifier)
+          (identifier))
+        (definition_item
+          (role_batch
+            (role_entry_full
+              (identifier)
+              (role_allows_list
+                (identifier)))
+            (role_entry_full
+              (identifier)
+              (role_allows_list
+                (identifier)
+                (identifier)))))
+        (definition_item
+          (node_batch
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))
+            (node_entry_full
+              (identifier)
+              (node_body
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))))
+        (definition_item
+          (edge_entry_full
+            (identifier)
+            (edge_body
+              (edge_entry
+                (role_entry
+                  (identifier)
+                  (cardinality
+                    (number))))
+              (edge_entry
+                (role_entry
+                  (identifier)
+                  (cardinality
+                    (number))))
+              (edge_entry
+                (node_entry
+                  (node_storage_entry
+                    (identifier)))))))
+        (definition_item
+          (index_batch
+            (index_entry_full
+              (identifier)
+              (identifier)
+              (identifier))
+            (index_entry_full
+              (identifier)
+              (identifier)
+              (identifier))))))))
+
+==================
+Mixed Define With Namespace Block
+==================
+DEFINE [
+    NAMESPACE Core.Logistics [
+        FIELD weight: Float,
+        FIELD destination: String,
+        NODE Package { weight, destination }
+    ]
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (mixed_definition_batch
+        (definition_item
+          (namespace_body
+            (dotted_identifier
+              (identifier)
+              (identifier))
+            (namespace_block
+              (contained_definition
+                (definition_item
+                  (field_entry
+                    (identifier)
+                    (type
+                      (identifier)))))
+              (contained_definition
+                (definition_item
+                  (field_entry
+                    (identifier)
+                    (type
+                      (identifier)))))
+              (contained_definition
+                (definition_item
+                  (node_entry_full
+                    (identifier)
+                    (node_body
+                      (node_entry
+                        (node_storage_entry
+                          (identifier)))
+                      (node_entry
+                        (node_storage_entry
+                          (identifier))))))))))))))

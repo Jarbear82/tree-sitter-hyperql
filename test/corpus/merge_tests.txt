@@ -1,0 +1,165 @@
+==================
+Merge Basic
+==================
+MERGE (p:Person { email: "alice@example.com" });
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (merge_statement
+        (identifier)
+        (identifier)
+        (pattern_object
+          (pattern_prop
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (string))))))))))
+
+==================
+Merge On Create Set
+==================
+MERGE (p:Person { email: "alice@example.com" })
+ON CREATE SET p.name = "Alice", p.score = 0;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (merge_statement
+        (identifier)
+        (identifier)
+        (pattern_object
+          (pattern_prop
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (string))))))
+        (merge_action
+          (set_assignments
+            (set_assignment
+              (member_access
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (string)))))
+            (set_assignment
+              (member_access
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (number)))))))))))
+
+==================
+Merge On Match Set
+==================
+MERGE (p:Person { email: "alice@example.com" })
+ON MATCH SET p.score += 1;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (merge_statement
+        (identifier)
+        (identifier)
+        (pattern_object
+          (pattern_prop
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (string))))))
+        (merge_action
+          (set_assignments
+            (set_assignment
+              (member_access
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (number)))))))))))
+
+==================
+Merge On Create And On Match
+==================
+MERGE (p:Person { email: "alice@example.com" })
+ON CREATE SET p.name = "Alice", p.score = 0
+ON MATCH SET p.score += 1;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (merge_statement
+        (identifier)
+        (identifier)
+        (pattern_object
+          (pattern_prop
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (string))))))
+        (merge_action
+          (set_assignments
+            (set_assignment
+              (member_access
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (string)))))
+            (set_assignment
+              (member_access
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (number)))))))
+        (merge_action
+          (set_assignments
+            (set_assignment
+              (member_access
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (identifier))
+              (expression
+                (primary_expression
+                  (literal
+                    (number)))))))))))
+
+==================
+Merge Object With Parameter
+==================
+MERGE OBJECT p WITH $personData;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (merge_statement
+        (identifier)
+        (parameter_ref
+          (identifier))))))

@@ -1,0 +1,240 @@
+==================
+Alter Node Add Field Level 1
+==================
+ALTER NODE Person ADD middle_name;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)))))))
+
+==================
+Alter Node Add Field With Decorator Level 1
+==================
+ALTER NODE Person ADD nickname @index;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)
+            (decorator)))))))
+
+==================
+Alter Node Drop Field Level 1
+==================
+ALTER NODE Person DROP legacy_field;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)))))))
+
+==================
+Alter Node Rename Field Level 1
+==================
+ALTER NODE Person RENAME first_name TO given_name;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)
+            (identifier)))))))
+
+==================
+Alter Node Add Constraint Level 1
+==================
+ALTER NODE Person ADD CONSTRAINT age >= 0;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))))))))
+
+==================
+Alter Node Add Named Constraint Level 1
+==================
+ALTER NODE Person ADD CONSTRAINT non_negative_age: age >= 0;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))))))))
+
+==================
+Alter Node Drop Constraint Level 1
+==================
+ALTER NODE Person DROP CONSTRAINT non_negative_age;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)))))))
+
+==================
+Alter Node Batch Ops Level 2
+==================
+ALTER NODE Person [
+    ADD middle_name,
+    ADD nickname @index,
+    DROP legacy_field,
+    RENAME first_name TO given_name
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier))
+          (alter_entry
+            (identifier)
+            (decorator))
+          (alter_entry
+            (identifier))
+          (alter_entry
+            (identifier)
+            (identifier)))))))
+
+==================
+Alter Node Add Role Level 1
+==================
+ALTER NODE Person ADD ROLE driver -> (1);
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (role_entry
+              (identifier)
+              (cardinality
+                (number)))))))))
+
+==================
+Alter Node Drop Role Level 1
+==================
+ALTER NODE Vehicle DROP ROLE owner;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)))))))
+
+==================
+Alter Node Add Multiple Roles Level 2
+==================
+ALTER NODE Car [
+    ADD ROLE driver -> (1),
+    ADD ROLE passenger -> (1..4)
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (role_entry
+              (identifier)
+              (cardinality
+                (number))))
+          (alter_entry
+            (role_entry
+              (identifier)
+              (cardinality
+                (number)
+                (number)))))))))
+
+==================
+Alter Node Batch Multiple Types Level 3
+==================
+ALTER NODE [
+    Person ADD nickname,
+    Employee [ADD manager_id, DROP old_field],
+    AI ADD version_tag
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)))
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier))
+          (alter_entry
+            (identifier)))
+        (identifier)
+        (alter_ops
+          (alter_entry
+            (identifier)))))))

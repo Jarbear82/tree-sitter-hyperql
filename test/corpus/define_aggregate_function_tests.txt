@@ -1,0 +1,209 @@
+==================
+Aggregate Function Minimal
+==================
+DEFINE AGGREGATE FUNCTION @pure TotalSum(val: Int): Int {
+    STATE [
+        total: Int = 0
+    ];
+    ACCUMULATE [
+        total = total + val
+    ];
+    FINALIZE total;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (aggregate_function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (state_clause
+            (identifier)
+            (type
+              (identifier))
+            (expression
+              (primary_expression
+                (literal
+                  (number)))))
+          (accumulate_clause
+            (identifier)
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (expression
+                  (primary_expression
+                    (identifier))))))
+          (finalize_clause
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Aggregate Function Two State Slots
+==================
+DEFINE AGGREGATE FUNCTION @pure WeightedAvg(val: Float, weight: Float): Float {
+    STATE [
+        total_weighted: Float = 0.0,
+        total_weight: Float = 0.0
+    ];
+    ACCUMULATE [
+        total_weighted = total_weighted + val * weight,
+        total_weight = total_weight + weight
+    ];
+    FINALIZE IF total_weight == 0.0 THEN 0.0 ELSE total_weighted / total_weight;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (aggregate_function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (state_clause
+            (identifier)
+            (type
+              (identifier))
+            (expression
+              (primary_expression
+                (literal
+                  (number))))
+            (identifier)
+            (type
+              (identifier))
+            (expression
+              (primary_expression
+                (literal
+                  (number)))))
+          (accumulate_clause
+            (identifier)
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (expression
+                      (primary_expression
+                        (identifier)))))))
+            (identifier)
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (expression
+                  (primary_expression
+                    (identifier))))))
+          (finalize_clause
+            (expression
+              (conditional_expression
+                (if_expression
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number))))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (identifier))))))))))))))
+
+==================
+Aggregate Function Count Non Null
+==================
+DEFINE AGGREGATE FUNCTION @pure CountPresent(val: String?): Int {
+    STATE [
+        count: Int = 0
+    ];
+    ACCUMULATE [
+        count = IF val IS NULL THEN count ELSE count + 1
+    ];
+    FINALIZE count;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (aggregate_function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (state_clause
+            (identifier)
+            (type
+              (identifier))
+            (expression
+              (primary_expression
+                (literal
+                  (number)))))
+          (accumulate_clause
+            (identifier)
+            (expression
+              (conditional_expression
+                (if_expression
+                  (expression
+                    (unary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))))
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))))))
+          (finalize_clause
+            (expression
+              (primary_expression
+                (identifier)))))))))

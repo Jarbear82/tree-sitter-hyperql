@@ -1,0 +1,85 @@
+==================
+Bulk Alter Mixed Types
+==================
+ALTER [
+    NODE Person ADD nickname,
+    FIELD email [ADD @index, ADD @unique],
+    ROLE driver ADD ALLOWS Truck,
+    EDGE Employment ADD contract_type
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (bulk_alter_block
+          (identifier)
+          (alter_ops
+            (alter_entry
+              (identifier)))
+          (alter_field_entry
+            (identifier)
+            (alter_field_ops
+              (alter_field_op
+                (decorator))
+              (alter_field_op
+                (decorator))))
+          (alter_role_entry
+            (identifier)
+            (alter_role_ops
+              (alter_role_op
+                (identifier))))
+          (identifier)
+          (alter_ops
+            (alter_entry
+              (identifier))))))))
+
+==================
+Bulk Alter With Inner Batches
+==================
+ALTER [
+    NODE [
+        Person [ADD nickname, DROP legacy_name],
+        Employee ADD hire_year
+    ],
+    FIELD [
+        score SET DEFAULT 0,
+        email ADD @index
+    ],
+    EDGE Employment ADD contract_type
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (alter_statement
+        (bulk_alter_block
+          (identifier)
+          (alter_ops
+            (alter_entry
+              (identifier))
+            (alter_entry
+              (identifier)))
+          (identifier)
+          (alter_ops
+            (alter_entry
+              (identifier)))
+          (alter_field_entry
+            (identifier)
+            (alter_field_ops
+              (alter_field_op
+                (expression
+                  (primary_expression
+                    (literal
+                      (number)))))))
+          (alter_field_entry
+            (identifier)
+            (alter_field_ops
+              (alter_field_op
+                (decorator))))
+          (identifier)
+          (alter_ops
+            (alter_entry
+              (identifier))))))))

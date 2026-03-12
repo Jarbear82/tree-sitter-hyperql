@@ -1,0 +1,110 @@
+==================
+Migrate Basic
+==================
+MIGRATE p TO Employee;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (migrate_statement
+        (identifier)
+        (identifier)))))
+
+==================
+Migrate With Map
+==================
+MIGRATE p TO Employee MAP { full_name = name };
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (migrate_statement
+        (identifier)
+        (identifier)
+        (object_literal
+          (identifier)
+          (expression
+            (primary_expression
+              (identifier))))))))
+
+==================
+Migrate With Defaults
+==================
+MIGRATE p TO Employee DEFAULTS { department = "Unassigned" };
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (migrate_statement
+        (identifier)
+        (identifier)
+        (object_literal
+          (identifier)
+          (expression
+            (primary_expression
+              (literal
+                (string)))))))))
+
+==================
+Migrate With Map And Defaults
+==================
+MIGRATE p TO Employee
+    MAP { full_name = name, dept_id = department }
+    DEFAULTS { hire_date = "2024-01-01" };
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (migrate_statement
+        (identifier)
+        (identifier)
+        (object_literal
+          (identifier)
+          (expression
+            (primary_expression
+              (identifier)))
+          (identifier)
+          (expression
+            (primary_expression
+              (identifier))))
+        (object_literal
+          (identifier)
+          (expression
+            (primary_expression
+              (literal
+                (string)))))))))
+
+==================
+Validate Migration Basic
+==================
+VALIDATE MIGRATION p TO Employee;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (migrate_statement
+        (identifier)
+        (identifier)))))
+
+==================
+Validate Migration With Map
+==================
+VALIDATE MIGRATION p TO Employee MAP { full_name = name };
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (migrate_statement
+        (identifier)
+        (identifier)
+        (object_literal
+          (identifier)
+          (expression
+            (primary_expression
+              (identifier))))))))

@@ -1,0 +1,902 @@
+==================
+Expression IF THEN ELSE
+==================
+MATCH (p:Person)
+RETURN IF p.age >= 18 THEN "adult" ELSE "minor" AS category;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (conditional_expression
+                (if_expression
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (identifier))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))))
+            (identifier)))))))
+
+==================
+Expression CASE Simple
+==================
+MATCH (p:Person)
+RETURN CASE p.priority
+    WHEN 1 THEN "low"
+    WHEN 2 THEN "medium"
+    WHEN 3 THEN "high"
+    ELSE "unknown"
+END AS label;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (conditional_expression
+                (case_expression
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))))
+            (identifier)))))))
+
+==================
+Expression CASE Searched
+==================
+MATCH (p:Person)
+RETURN CASE
+    WHEN p.score >= 90 THEN "A"
+    WHEN p.score >= 80 THEN "B"
+    WHEN p.score >= 70 THEN "C"
+    ELSE "F"
+END AS grade;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (conditional_expression
+                (case_expression
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (identifier))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (identifier))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (expression
+                              (primary_expression
+                                (identifier)))
+                            (identifier))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number))))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))))
+            (identifier)))))))
+
+==================
+Expression CASE No Else
+==================
+MATCH (p:Person)
+RETURN CASE p.status
+    WHEN "ACTIVE" THEN true
+    WHEN "INACTIVE" THEN false
+END AS is_active;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (conditional_expression
+                (case_expression
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (boolean))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (boolean)))))))
+            (identifier)))))))
+
+==================
+Expression Match Functional
+==================
+MATCH (p:Person)
+RETURN MATCH p.status {
+    "ACTIVE" => true,
+    "INACTIVE" => false,
+    "PENDING" => null
+} AS statusBool;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (conditional_expression
+                (match_expression
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (boolean))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (boolean))))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))
+                  (expression
+                    (primary_expression
+                      (literal))))))
+            (identifier)))))))
+
+==================
+Expression Null Coalesce
+==================
+MATCH (p:Person)
+RETURN p.middle_name ?? "N/A" AS displayMiddle;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (identifier))))
+                (expression
+                  (primary_expression
+                    (literal
+                      (string))))))
+            (identifier)))))))
+
+==================
+Expression IS NULL
+==================
+MATCH (p:Person)
+WHERE p.email IS NULL
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (unary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression IS NOT NULL
+==================
+MATCH (p:Person)
+WHERE p.email IS NOT NULL
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (unary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression LIKE
+==================
+MATCH (p:Person)
+WHERE p.name LIKE "Alice%"
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (literal
+                    (string))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression ILIKE
+==================
+MATCH (p:Person)
+WHERE p.name ILIKE "alice%"
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (literal
+                    (string))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression MATCHES Regex
+==================
+MATCH (p:Person)
+WHERE p.email MATCHES "^[a-z]+@[a-z]+\\.com$"
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (literal
+                    (string))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression IN List Literal
+==================
+MATCH (p:Person)
+WHERE p.department IN ["Engineering", "Design", "Product"]
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (list_literal
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string))))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string))))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string)))))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression Bitwise OR Flags
+==================
+MATCH (p:Person)
+WHERE p.permissions | Permission.WRITE
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression Enum Shorthand
+==================
+MATCH (p:Person)
+WHERE p.priority == .HIGH
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (enum_shorthand
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression Parameter Reference Bare
+==================
+MATCH (p:Person)
+WHERE p.name == $name
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (parameter_ref
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression Parameter Reference Typed
+==================
+MATCH (p:Person)
+WHERE p.age > $minAge: Int
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (parameter_ref
+                    (identifier)
+                    (type
+                      (identifier)))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression Optional Chaining
+==================
+MATCH (p:Person)
+RETURN p?.address?.city AS city;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier))))
+                  (identifier))))
+            (identifier)))))))
+
+==================
+Expression This Member Access In Constraint
+==================
+DEFINE NODE Product {
+    price
+} {
+    constraints: [
+        this.price > 0
+    ]
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (node_definition
+          (node_entry_full
+            (identifier)
+            (node_body
+              (node_entry
+                (node_storage_entry
+                  (identifier))))
+            (metadata_block
+              (constraints_meta
+                (constraint_array
+                  (expression
+                    (binary_expression
+                      (expression
+                        (primary_expression
+                          (member_access
+                            (identifier))))
+                      (expression
+                        (primary_expression
+                          (literal
+                            (number)))))))))))))))
+
+==================
+Expression Nested Arithmetic
+==================
+MATCH (p:Person)
+RETURN (p.base_salary + p.bonus) * (1.0 - p.tax_rate) AS net_pay;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (expression
+                      (binary_expression
+                        (expression
+                          (primary_expression
+                            (member_access
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (identifier))))
+                        (expression
+                          (primary_expression
+                            (member_access
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (identifier))))))))
+                (expression
+                  (primary_expression
+                    (expression
+                      (binary_expression
+                        (expression
+                          (primary_expression
+                            (literal
+                              (number))))
+                        (expression
+                          (primary_expression
+                            (member_access
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (identifier))))))))))
+            (identifier)))))))
+
+==================
+Expression Unary Negation
+==================
+MATCH (p:Person)
+WHERE !p.active
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (unary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression Unary Bitwise NOT
+==================
+MATCH (p:Person)
+RETURN ~p.flags AS invertedFlags;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (unary_expression
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (identifier))))))
+            (identifier)))))))

@@ -1,0 +1,1003 @@
+==================
+Query Match Return All
+==================
+MATCH (p:Person)
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query Match Return Field
+==================
+MATCH (p:Person)
+RETURN p.name;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))))))))
+
+==================
+Query Match Return Multiple
+==================
+MATCH (p:Person)
+RETURN p.name, p.age;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))))))))
+
+==================
+Query Match Where Return
+==================
+MATCH (p:Person)
+WHERE p.age > 18
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (literal
+                    (number))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query Match Where Multiple Conditions
+==================
+MATCH (p:Person)
+WHERE [
+    p.age >= 18,
+    p.active == true
+]
+RETURN p.name, p.age;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (literal
+                    (number))))))
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (literal
+                    (boolean))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))))))))
+
+==================
+Query Match Property Filter Inline
+==================
+MATCH (p:Person { name: "Alice" })
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string)))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query Match Untyped Node
+==================
+MATCH (n)
+RETURN n;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query Match With Return Alias
+==================
+MATCH (p:Person)
+RETURN p.name AS fullName, p.age AS years;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))
+            (identifier))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))
+            (identifier)))))))
+
+==================
+Query With Clause Projection
+==================
+MATCH (p:Person)
+WITH p.name AS n, p.age AS a
+RETURN n, a;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (with_clause
+          (with_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))
+            (identifier))
+          (with_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier))))
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query With Collect
+==================
+MATCH (p:Person)
+WITH p.department AS dept, COLLECT(p.name) AS names
+RETURN dept, names;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (with_clause
+          (with_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))
+            (identifier))
+          (with_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier))))
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query With Bracket Form
+==================
+MATCH (p:Person)
+WITH [
+    p.name AS name,
+    p.age AS age,
+    COUNT(*) AS total
+]
+RETURN name, age, total;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (with_clause
+          (with_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))
+            (identifier))
+          (with_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))
+            (identifier))
+          (with_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (star_arg))))
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier))))
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier))))
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query Return Distinct
+==================
+MATCH (p:Person)
+RETURN DISTINCT p.department;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))))))))
+
+==================
+Query Group By
+==================
+MATCH (p:Person)
+RETURN p.department, COUNT(*) AS headcount
+GROUP BY p.department;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (star_arg))))
+            (identifier))
+          (group_by_clause
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))))))))
+
+==================
+Query Having
+==================
+MATCH (p:Person)
+RETURN p.department, COUNT(*) AS headcount
+GROUP BY p.department
+HAVING headcount > 5;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (star_arg))))
+            (identifier))
+          (group_by_clause
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (having_clause
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))))))))
+
+==================
+Query Order By ASC
+==================
+MATCH (p:Person)
+RETURN p.name, p.age
+ORDER BY p.age ASC;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier)))))))))))
+
+==================
+Query Order By DESC
+==================
+MATCH (p:Person)
+RETURN p.name
+ORDER BY p.name DESC;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier)))))))))))
+
+==================
+Query Order By Multiple
+==================
+MATCH (p:Person)
+RETURN p.department, p.name
+ORDER BY p.department ASC, p.name ASC;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier)))))
+            (order_entry
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier)))))))))))
+
+==================
+Query Order By Nulls First
+==================
+MATCH (p:Person)
+RETURN p.name, p.middle_name
+ORDER BY p.middle_name ASC NULLS FIRST;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier)))))))))))
+
+==================
+Query Order By Nulls Last
+==================
+MATCH (p:Person)
+RETURN p.name, p.score
+ORDER BY p.score DESC NULLS LAST;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier)))))))))))
+
+==================
+Query Limit
+==================
+MATCH (p:Person)
+RETURN p
+LIMIT 10;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier))))
+          (limit_clause
+            (expression
+              (primary_expression
+                (literal
+                  (number))))))))))
+
+==================
+Query Skip
+==================
+MATCH (p:Person)
+RETURN p
+SKIP 20;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier))))
+          (skip_clause
+            (expression
+              (primary_expression
+                (literal
+                  (number))))))))))
+
+==================
+Query Limit And Skip
+==================
+MATCH (p:Person)
+RETURN p
+ORDER BY p.name ASC
+LIMIT 10
+SKIP 20;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier))))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))))
+          (limit_clause
+            (expression
+              (primary_expression
+                (literal
+                  (number)))))
+          (skip_clause
+            (expression
+              (primary_expression
+                (literal
+                  (number))))))))))
+
+==================
+Query Match Multiple Patterns Batch
+==================
+MATCH [
+    (p:Person),
+    (c:Company)
+]
+WHERE p.employer_id == c._id
+RETURN p.name, c.name;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier))))))))))
+
+==================
+Query Optional Match
+==================
+MATCH (p:Person)
+OPTIONAL MATCH (p:Person { department: "Engineering" })
+RETURN p;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string)))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Query Cross Type
+==================
+MATCH (n) CROSS_TYPE
+WHERE n.name == "Alice"
+RETURN n;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (literal
+                    (string))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))

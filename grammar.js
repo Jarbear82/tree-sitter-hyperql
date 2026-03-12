@@ -1,14 +1,11 @@
 module.exports = grammar({
-  name: 'hyperql',
+  name: "hyperql",
 
-  extras: $ => [
-    /\s/,
-    $.comment
-  ],
+  extras: ($) => [/\s/, $.comment],
 
-  word: $ => $.identifier,
+  word: ($) => $.identifier,
 
-  conflicts: $ => [
+  conflicts: ($) => [
     [$.with_clause],
     [$.return_clause],
     [$.group_by_clause],
@@ -24,39 +21,52 @@ module.exports = grammar({
     [$.enum_definition],
     [$.role_allows_list],
     [$.metadata_block],
-    [$.array_constraints],
-    [$.object_constraints],
+    [$.namespace_block],
     [$.state_clause],
     [$.accumulate_clause],
     [$.index_definition],
-    [$.batch_definition],
     [$.access_entry],
     [$.match_expression],
     [$.function_call],
-    [$.create_statement],
+    [$.with_entry, $.list_literal],
+    [$.return_entry, $.list_literal],
+    [$.where_clause, $.list_literal],
+    [$.having_clause, $.list_literal],
+    [$.window_spec],
+    [$.window_frame],
     [$.binary_expression, $.subquery_expression],
     [$.type],
-    [$.pattern, $.primary_expression]
+    [$.pattern, $.primary_expression],
+    [$.with_entry, $.primary_expression],
+    [$.with_entry, $.function_call],
   ],
 
   rules: {
-    source_file: $ => repeat($.statement),
+    source_file: ($) => repeat($.statement),
 
-    statement: $ => seq(
-      choice(
-        $.definition_statement,
-        $.query_statement,
-        $.mutation_statement,
-        $.transaction_statement,
-        $.import_statement,
-        $.introspection_statement
+    statement: ($) =>
+      seq(
+        choice(
+          $.definition_statement,
+          $.query_statement,
+          $.mutation_statement,
+          $.transaction_statement,
+          $.import_statement,
+          $.introspection_statement,
+          $.prepare_statement,
+          $.execute_statement,
+        ),
+        ";",
       ),
-      ';'
-    ),
 
     // --- Definitions (SDL) ---
-    definition_statement: $ => seq(
-      'DEFINE',
+    definition_statement: ($) =>
+      choice(
+        seq(repeat(choice("DEFINE", "ABSTRACT")), $.definition_body),
+        $.mixed_definition_batch,
+      ),
+
+    definition_body: ($) =>
       choice(
         $.namespace_definition,
         $.field_definition,
@@ -73,469 +83,1001 @@ module.exports = grammar({
         $.access_role_definition,
         $.access_policy_definition,
         $.schema_definition,
-        $.batch_definition
-      )
-    ),
+      ),
 
-    namespace_definition: $ => seq('NAMESPACE', $.identifier),
+    mixed_definition_batch: ($) =>
+      seq("DEFINE", "[", commaSep($.definition_item), "]"),
 
-    field_definition: $ => seq(
-      'FIELD',
+    definition_item: ($) =>
       choice(
-        seq($.identifier, ':', $.type, repeat($.decorator)),
-        $.batch_id_list
-      )
-    ),
+        seq("NAMESPACE", $.namespace_body),
+        seq("FIELD", choice($.field_entry, $.field_batch)),
+        seq("STRUCT", $.identifier, "{", commaSep($.identifier), "}"),
+        seq("TRAIT", $.identifier, "{", commaSep($.identifier), "}"),
+        seq(optional("ABSTRACT"), "NODE", choice($.node_entry_full, $.node_batch)),
+        seq(optional("ABSTRACT"), "EDGE", choice($.edge_entry_full, $.edge_batch)),
+        seq("ENUM", choice($.enum_entry_full, $.enum_batch)),
+        seq("ROLE", choice($.role_entry_full, $.role_batch)),
+        seq("INDEX", choice($.index_entry_full, $.index_batch)),
+      ),
 
-    enum_definition: $ => seq(
-      'ENUM',
-      $.identifier,
-      optional(seq('<', $.primitive_type, '>')),
-      '{',
-      commaSep(seq($.identifier, optional(seq('=', $.literal)))),
-      '}'
-    ),
+    namespace_definition: ($) => seq("NAMESPACE", $.namespace_body),
+    namespace_body: ($) =>
+      seq($.dotted_identifier, optional($.namespace_block)),
+    namespace_block: ($) =>
+      seq("[", repeat(seq($.contained_definition, optional(choice(";", ",")))), "]"),
 
-    struct_definition: $ => seq(
-      'STRUCT',
-      $.identifier,
-      '{',
-      commaSep($.identifier),
-      '}'
-    ),
-
-    trait_definition: $ => seq(
-      'TRAIT',
-      $.identifier,
-      '{',
-      commaSep($.identifier),
-      '}'
-    ),
-
-    role_definition: $ => seq(
-      'ROLE',
+    contained_definition: ($) =>
       choice(
-        seq($.identifier, 'ALLOWS', $.role_allows_list),
-        seq($.batch_id_list, 'ALLOWS', $.type)
-      )
-    ),
+        $.definition_item,
+        seq("SCHEMA", $.identifier, "[", repeat(seq($.contained_definition, optional(choice(";", ",")))), "]"),
+      ),
 
-    role_allows_list: $ => choice(
-      seq($.type, optional($.constraint_block)),
-      commaSep1(seq($.type, optional($.constraint_block)))
-    ),
+    field_definition: ($) => seq("FIELD", choice($.field_entry, $.field_batch)),
+    field_entry: ($) =>
+      seq(
+        $.identifier,
+        ":",
+        $.type,
+        repeat($.decorator),
+        optional(seq("DEFAULT", $.expression)),
+      ),
+    field_batch: ($) => seq("[", commaSep1($.field_entry), "]"),
 
-    constraint_block: $ => seq('{', commaSep(choice($.display_meta, $.constraints_meta, $.expression)), '}'),
+    enum_definition: ($) => seq("ENUM", choice($.enum_entry_full, $.enum_batch)),
+    enum_entry_full: ($) =>
+      seq($.identifier, optional(seq("<", $.primitive_type, ">")), $.enum_body),
+    enum_body: ($) =>
+      seq("{", commaSep(seq($.identifier, optional(seq("=", $.literal)))), "}"),
+    enum_batch: ($) => seq("[", commaSep1($.enum_entry_full), "]"),
 
-    node_definition: $ => seq(
-      optional('ABSTRACT'),
-      'NODE',
+    struct_definition: ($) =>
+      seq("STRUCT", $.identifier, "{", commaSep($.identifier), "}"),
+
+    trait_definition: ($) =>
+      seq("TRAIT", $.identifier, "{", commaSep($.identifier), "}"),
+
+    node_definition: ($) => seq("NODE", choice($.node_entry_full, $.node_batch)),
+    node_entry_full: ($) =>
+      seq(
+        optional("ABSTRACT"),
+        $.identifier,
+        optional($.extends_clause),
+        $.node_body,
+        optional($.metadata_block),
+      ),
+    node_batch: ($) => seq("[", commaSep1($.node_entry_full), "]"),
+
+    edge_definition: ($) => seq("EDGE", choice($.edge_entry_full, $.edge_batch)),
+    edge_entry_full: ($) =>
+      seq(
+        optional("ABSTRACT"),
+        $.identifier,
+        optional($.extends_clause),
+        $.edge_body,
+        optional($.metadata_block),
+      ),
+    edge_batch: ($) => seq("[", commaSep1($.edge_entry_full), "]"),
+
+    role_definition: ($) =>
+      seq("ROLE", choice($.role_entry_full, $.role_batch)),
+    role_entry_full: ($) => seq($.identifier, "ALLOWS", $.role_allows_list),
+    role_batch: ($) => seq("[", commaSep1($.role_entry_full), "]"),
+
+    role_allows_list: ($) =>
       choice(
-        seq($.identifier, optional($.extends_clause), $.node_body, optional($.metadata_block)),
-        seq($.batch_node_list)
-      )
-    ),
+        // Singular, no constraint
+        $.identifier,
+        // Singular, with constraint
+        seq($.identifier, ":", $.role_constraint_block),
+        // Batch, no constraint
+        seq("[", commaSep($.identifier), "]"),
+        // Batch, unified constraint
+        seq("[", commaSep1($.identifier), "]", ":", $.role_constraint_block),
+        // Batch, type-specific constraints
+        seq(
+          "[",
+          commaSep1(seq($.identifier, ":", $.role_constraint_block)),
+          "]",
+        ),
+      ),
 
-    edge_definition: $ => seq(
-      optional('ABSTRACT'),
-      'EDGE',
+    role_constraint_block: ($) => seq("{", commaSep($.expression), "}"),
+
+    extends_clause: ($) =>
+      seq(
+        "EXTENDS",
+        choice($.identifier, seq("[", commaSep1($.identifier), "]")),
+      ),
+
+    node_body: ($) => seq("{", commaSep($.node_entry), "}"),
+    node_entry: ($) => choice($.node_storage_entry, $.node_computed_entry),
+
+    node_storage_entry: ($) =>
+      seq($.identifier, optional(seq("DEFAULT", $.expression))),
+
+    node_computed_entry: ($) =>
+      seq(
+        $.identifier,
+        ":",
+        $.type,
+        repeat($.decorator),
+        optional($.query_block),
+      ),
+
+    query_block: ($) => seq("{", repeat1($.query_clause), "}"),
+
+    edge_body: ($) => seq("{", commaSep($.edge_entry), "}"),
+    edge_entry: ($) =>
       choice(
-        seq($.identifier, optional($.extends_clause), $.edge_body, optional($.metadata_block)),
-        seq($.batch_edge_list)
-      )
-    ),
+        $.node_entry, // fields
+        $.role_entry,
+      ),
 
-    extends_clause: $ => seq('EXTENDS', choice($.identifier, seq('[', commaSep1($.identifier), ']'))),
+    role_entry: ($) =>
+      seq($.identifier, choice("<-", "->", "<->"), $.cardinality),
 
-    node_body: $ => seq('{', commaSep($.node_entry), '}'),
-    node_entry: $ => seq(
-      optional('ABSTRACT'),
-      $.identifier,
-      optional(seq(':', $.type)),
-      optional(seq('DEFAULT', $.expression)),
-      repeat($.decorator)
-    ),
+    cardinality: ($) =>
+      seq(
+        "(",
+        choice($.number, "*", seq($.number, "..", choice($.number, "*"))),
+        ")",
+      ),
 
-    edge_body: $ => seq('{', commaSep($.edge_entry), '}'),
-    edge_entry: $ => choice(
-      $.node_entry, // fields
-      $.role_entry
-    ),
+    metadata_block: ($) =>
+      seq("{", commaSep(choice($.display_meta, $.constraints_meta)), "}"),
+    display_meta: ($) => seq("display", ":", $.identifier),
 
-    role_entry: $ => seq(
-      $.identifier,
-      choice('<-', '->', '<->'),
-      $.cardinality
-    ),
+    constraints_meta: ($) =>
+      seq("constraints", ":", choice($.constraint_array, $.constraint_object)),
 
-    cardinality: $ => seq('(', choice($.number, '*', seq($.number, '..', choice($.number, '*'))), ')'),
+    constraint_array: ($) => seq("[", commaSep($.expression), "]"),
 
-    metadata_block: $ => seq('{', commaSep(choice($.display_meta, $.constraints_meta)), '}'),
-    display_meta: $ => seq('display', ':', $.identifier),
-    constraints_meta: $ => seq('constraints', ':', choice($.array_constraints, $.object_constraints)),
-    array_constraints: $ => seq('[', commaSep($.expression), ']', repeat($.decorator)),
-    object_constraints: $ => seq('{', commaSep(seq($.identifier, ':', $.expression, repeat($.decorator))), '}'),
+    constraint_object: ($) =>
+      seq(
+        "{",
+        commaSep(seq($.identifier, ":", $.expression, optional($.decorator))),
+        "}",
+        optional($.decorator),
+      ),
 
-    function_definition: $ => seq(
-      'FUNCTION',
-      $.decorator, // purity
-      $.identifier,
-      '(', commaSep($.parameter), ')',
-      ':', $.type,
-      $.block
-    ),
+    function_definition: ($) =>
+      seq(
+        "FUNCTION",
+        $.decorator, // purity
+        $.identifier,
+        "(",
+        commaSep($.parameter),
+        ")",
+        ":",
+        $.type,
+        $.block,
+      ),
 
-    aggregate_function_definition: $ => seq(
-      'AGGREGATE', 'FUNCTION',
-      $.decorator, // purity
-      $.identifier,
-      '(', commaSep($.parameter), ')',
-      ':', $.type,
-      '{',
-      $.state_clause,
-      $.accumulate_clause,
-      $.finalize_clause,
-      '}'
-    ),
+    aggregate_function_definition: ($) =>
+      seq(
+        "AGGREGATE",
+        "FUNCTION",
+        $.decorator, // purity
+        $.identifier,
+        "(",
+        commaSep($.parameter),
+        ")",
+        ":",
+        $.type,
+        "{",
+        $.state_clause,
+        $.accumulate_clause,
+        $.finalize_clause,
+        "}",
+      ),
 
-    state_clause: $ => seq('STATE', '[', commaSep(seq($.identifier, ':', $.type, '=', $.expression)), ']', ';'),
-    accumulate_clause: $ => seq('ACCUMULATE', '[', commaSep(seq($.identifier, '=', $.expression)), ']', ';'),
-    finalize_clause: $ => seq('FINALIZE', $.expression, ';'),
+    state_clause: ($) =>
+      seq(
+        "STATE",
+        "[",
+        commaSep(seq($.identifier, ":", $.type, "=", $.expression)),
+        "]",
+        ";",
+      ),
+    accumulate_clause: ($) =>
+      seq(
+        "ACCUMULATE",
+        "[",
+        commaSep(seq($.identifier, "=", $.expression)),
+        "]",
+        ";",
+      ),
+    finalize_clause: ($) => seq("FINALIZE", $.expression, ";"),
 
-    index_definition: $ => seq(
-      'INDEX',
-      choice(
-        seq($.identifier, 'ON', $.identifier, '(', commaSep1($.identifier), ')'),
-        seq('[', commaSep($.index_entry), ']')
-      )
-    ),
-    index_entry: $ => seq($.identifier, 'ON', $.identifier, '(', commaSep1($.identifier), ')'),
+    index_definition: ($) =>
+      seq("INDEX", choice($.index_entry_full, $.index_batch)),
+    index_entry_full: ($) =>
+      seq($.identifier, "ON", $.identifier, "(", commaSep1($.identifier), ")"),
+    index_batch: ($) => seq("[", commaSep1($.index_entry_full), "]"),
 
-    materialized_view_definition: $ => seq(
-      'MATERIALIZED', 'VIEW', $.identifier,
-      'FOR', '[', commaSep1($.identifier), ']',
-      'ON', '[', commaSep1($.identifier), ']',
-      'INDEX', '[', commaSep1($.identifier), ']'
-    ),
+    materialized_view_definition: ($) =>
+      seq(
+        "MATERIALIZED",
+        "VIEW",
+        $.identifier,
+        "FOR",
+        "[",
+        commaSep1($.identifier),
+        "]",
+        "ON",
+        "[",
+        commaSep1($.identifier),
+        "]",
+        "INDEX",
+        "[",
+        commaSep1($.identifier),
+        "]",
+      ),
 
-    schema_definition: $ => seq('SCHEMA', $.identifier, '[', repeat($.statement), ']'),
-
-    batch_definition: $ => seq('[', commaSep($.definition_statement), ']'),
+    schema_definition: ($) =>
+      seq("SCHEMA", $.identifier, "[", repeat(seq($.contained_definition, optional(choice(";", ",")))), "]"),
 
     // --- Queries & Mutations (DML) ---
-    query_statement: $ => repeat1($.query_clause),
+    query_statement: ($) => repeat1($.query_clause),
 
-    query_clause: $ => choice(
-      $.match_clause,
-      $.where_clause,
-      $.with_clause,
-      $.return_clause,
-      $.union_clause,
-      $.unwind_clause // Assumed from context
-    ),
-
-    match_clause: $ => seq(
-      optional('OPTIONAL'),
-      'MATCH',
-      choice($.pattern, seq('[', commaSep1($.pattern), ']'))
-    ),
-
-    pattern: $ => choice(
-      seq('(', $.identifier, optional(seq(':', $.identifier)), optional($.pattern_object), ')'),
-      seq('PATH', $.identifier, '=', $.path_pattern)
-    ),
-
-    pattern_object: $ => seq('{', commaSep(choice($.pattern_prop, $.pattern_role)), '}'),
-    pattern_prop: $ => seq($.identifier, choice(':', '='), $.expression),
-    pattern_role: $ => seq($.identifier, '=>', $.identifier),
-
-    path_pattern: $ => seq(
-      '(', $.identifier, ')',
-      '-', '[', ':', $.identifier, '*', optional($.identifier), ']', '-', '>',
-      '(', $.identifier, ')'
-    ),
-
-    where_clause: $ => seq('WHERE', choice($.expression, seq('[', commaSep1($.expression), ']'))),
-
-    with_clause: $ => seq('WITH', choice(commaSep1($.with_entry), seq('[', commaSep1($.with_entry), ']'))),
-    with_entry: $ => seq($.expression, optional(seq('AS', $.identifier))),
-
-    return_clause: $ => seq(
-      'RETURN',
-      optional('DISTINCT'),
-      choice(commaSep1($.return_entry), seq('[', commaSep1($.return_entry), ']')),
-      optional($.group_by_clause),
-      optional($.having_clause),
-      optional($.order_by_clause),
-      optional($.limit_clause),
-      optional($.skip_clause)
-    ),
-
-    return_entry: $ => seq($.expression, optional(seq('AS', $.identifier))),
-
-    group_by_clause: $ => seq('GROUP', 'BY', commaSep1($.expression)),
-    having_clause: $ => seq('HAVING', choice($.expression, seq('[', commaSep1($.expression), ']'))),
-    order_by_clause: $ => seq('ORDER', 'BY', commaSep1($.order_entry)),
-    order_entry: $ => seq($.expression, optional(choice('ASC', 'DESC')), optional(seq('NULLS', choice('FIRST', 'LAST')))),
-    limit_clause: $ => seq('LIMIT', $.expression),
-    skip_clause: $ => seq('SKIP', $.expression),
-
-    union_clause: $ => seq('UNION', optional('ALL')),
-    unwind_clause: $ => seq('UNWIND', $.expression, 'AS', $.identifier),
-
-    mutation_statement: $ => choice(
-      $.create_statement,
-      $.merge_statement,
-      $.set_statement,
-      $.delete_statement,
-      $.alter_statement,
-      $.drop_statement,
-      $.migrate_statement
-    ),
-
-    create_statement: $ => seq(
-      'CREATE',
+    query_clause: ($) =>
       choice(
-        seq('NODE', choice(seq($.identifier, ':', $.identifier, $.object_literal), seq('[', commaSep1($.create_node_entry), ']'))),
-        seq('EDGE', choice(seq($.identifier, ':', $.identifier, $.object_literal), seq('[', commaSep1($.create_edge_entry), ']'))),
-        seq('USER', $.identifier, 'WITH', 'PASSWORD', $.string, optional(seq('ROLES', '[', commaSep($.identifier), ']'))),
-        seq('[', repeat1(choice($.create_node_batch, $.create_edge_batch)), ']')
-      )
-    ),
+        $.match_clause,
+        $.where_clause,
+        $.with_clause,
+        $.return_clause,
+        $.union_clause,
+      ),
 
-    create_node_entry: $ => seq($.identifier, ':', $.identifier, $.object_literal),
-    create_edge_entry: $ => seq($.identifier, ':', $.identifier, $.object_literal),
-    create_node_batch: $ => seq('NODE', '[', commaSep($.create_node_entry), ']'),
-    create_edge_batch: $ => seq('EDGE', '[', commaSep($.create_edge_entry), ']'),
+    match_clause: ($) =>
+      seq(
+        optional("OPTIONAL"),
+        "MATCH",
+        choice(commaSep1($.pattern), seq("[", commaSep1($.pattern), "]")),
+        optional("CROSS_TYPE"),
+      ),
 
-    merge_statement: $ => choice(
-      seq('MERGE', '(', $.identifier, ':', $.identifier, $.pattern_object, ')', repeat($.merge_action)),
-      seq('MERGE', 'OBJECT', $.identifier, 'WITH', $.parameter_ref)
-    ),
-    merge_action: $ => seq('ON', choice('CREATE', 'MATCH'), 'SET', $.set_assignments),
-
-    set_statement: $ => seq('SET', choice($.set_assignments, $.set_isolation)),
-    set_assignments: $ => commaSep1($.set_assignment),
-    set_assignment: $ => choice(
-      seq($.identifier, choice('=', '+='), $.expression),
-      seq($.member_access, choice('=', '+=', '-='), $.expression)
-    ),
-
-    delete_statement: $ => seq(optional('DETACH'), 'DELETE', commaSep1($.identifier)),
-
-    alter_statement: $ => seq(
-      'ALTER',
+    pattern: ($) =>
       choice(
-        seq('NODE', $.identifier, $.block),
-        seq('EDGE', $.identifier, $.block),
-        seq('SCHEMA', $.identifier, '[', repeat($.alter_schema_entry), ']'),
-        seq('USER', $.identifier, choice(seq('SET', 'PASSWORD', $.string), seq('ADD', 'ROLES', '[', commaSep($.identifier), ']'), seq('REMOVE', 'ROLES', '[', commaSep($.identifier), ']'))),
-        seq('NAMESPACE', $.identifier, 'SET', 'STRICT_PERMISSIONS', choice('ON', 'OFF'))
-      )
-    ),
-    alter_schema_entry: $ => seq(choice('ADD', 'DROP', 'RENAME'), $.identifier, optional(seq('TO', $.identifier))),
+        seq(
+          "(",
+          $.identifier,
+          optional(seq(":", $.identifier)),
+          optional($.pattern_object),
+          ")",
+        ),
+        seq("PATH", $.identifier, "=", $.path_pattern),
+      ),
 
-    drop_statement: $ => seq('DROP', choice('USER', 'SCHEMA', 'NODE', 'EDGE', 'FIELD', 'ROLE'), $.identifier),
+    pattern_object: ($) =>
+      seq("{", commaSep(choice($.pattern_prop, $.pattern_role)), "}"),
+    pattern_prop: ($) => seq($.identifier, choice(":", "="), $.expression),
+    pattern_role: ($) => seq($.identifier, "=>", $.identifier),
 
-    migrate_statement: $ => choice(
-      seq('MIGRATE', $.identifier, 'TO', $.identifier, optional(seq('MAP', $.object_literal)), optional(seq('DEFAULTS', $.object_literal))),
-      seq('VALIDATE', 'MIGRATION', $.identifier, 'TO', $.identifier, optional(seq('MAP', $.object_literal)), optional(seq('DEFAULTS', $.object_literal)))
-    ),
+    path_pattern: ($) =>
+      seq(
+        "(",
+        $.identifier,
+        ")",
+        "-",
+        "[",
+        ":",
+        $.identifier,
+        "*",
+        optional($.identifier),
+        "]",
+        "-",
+        ">",
+        "(",
+        $.identifier,
+        ")",
+      ),
+
+    where_clause: ($) =>
+      seq(
+        "WHERE",
+        choice($.expression, seq("[", commaSep1($.expression), "]")),
+      ),
+
+    with_clause: ($) =>
+      seq(
+        "WITH",
+        choice(commaSep1($.with_entry), seq("[", commaSep1($.with_entry), "]")),
+      ),
+    with_entry: ($) =>
+      choice(
+        seq($.expression, optional(seq("AS", $.identifier))),
+        seq($.identifier, "(", commaSep(choice($.identifier, seq($.identifier, ":", $.expression))), ")", "AS", $.identifier),
+      ),
+
+    return_clause: ($) =>
+      seq(
+        "RETURN",
+        optional("DISTINCT"),
+        choice(
+          commaSep1($.return_entry),
+          seq("[", commaSep1($.return_entry), "]"),
+        ),
+        optional($.group_by_clause),
+        optional($.having_clause),
+        optional($.order_by_clause),
+        optional($.limit_clause),
+        optional($.skip_clause),
+      ),
+
+    return_entry: ($) => seq($.expression, optional(seq("AS", $.identifier))),
+
+    group_by_clause: ($) => seq("GROUP", "BY", commaSep1($.expression)),
+    having_clause: ($) =>
+      seq(
+        "HAVING",
+        choice($.expression, seq("[", commaSep1($.expression), "]")),
+      ),
+    order_by_clause: ($) => seq("ORDER", "BY", commaSep1($.order_entry)),
+    order_entry: ($) =>
+      seq(
+        $.expression,
+        optional(choice("ASC", "DESC")),
+        optional(seq("NULLS", choice("FIRST", "LAST"))),
+      ),
+    limit_clause: ($) => seq("LIMIT", $.expression),
+    skip_clause: ($) => seq("SKIP", $.expression),
+
+    union_clause: ($) => seq("UNION", optional("ALL")),
+
+    mutation_statement: ($) =>
+      choice(
+        seq("CREATE", $.create_body),
+        $.mixed_create_batch,
+        $.merge_statement,
+        $.set_statement,
+        $.delete_statement,
+        $.alter_statement,
+        $.drop_statement,
+        $.migrate_statement,
+        seq("GRANT", "ACCESS", "ROLE", $.identifier, "TO", $.identifier),
+        seq("REVOKE", "ACCESS", "ROLE", $.identifier, "FROM", $.identifier),
+        seq("ADD", "ROLE", choice($.role_entry, seq("[", commaSep1($.role_entry), "]"))),
+      ),
+
+    create_body: ($) => choice($.singular_create, $.same_type_create_batch),
+
+    singular_create: ($) =>
+      choice(
+        seq("NODE", $.create_node_entry),
+        seq("EDGE", $.create_edge_entry),
+        seq(
+          "USER",
+          $.identifier,
+          "WITH",
+          "PASSWORD",
+          $.string,
+          optional(seq("ROLES", "[", commaSep($.identifier), "]")),
+        ),
+      ),
+
+    same_type_create_batch: ($) =>
+      choice(
+        seq("NODE", $.create_node_batch),
+        seq("EDGE", $.create_edge_batch),
+      ),
+
+    mixed_create_batch: ($) => seq("CREATE", "[", commaSep($.create_item), "]"),
+
+    create_item: ($) =>
+      choice(
+        seq("NODE", choice($.create_node_entry, $.create_node_batch)),
+        seq("EDGE", choice($.create_edge_entry, $.create_edge_batch)),
+      ),
+
+    create_node_entry: ($) => seq($.identifier, ":", $.identifier, $.create_body_block),
+    create_edge_entry: ($) => seq($.identifier, ":", $.identifier, $.create_body_block),
+    create_node_batch: ($) => seq("[", commaSep1($.create_node_entry), "]"),
+    create_edge_batch: ($) => seq("[", commaSep1($.create_edge_entry), "]"),
+
+    create_body_block: ($) => seq("{", commaSep($.create_assignment), "}"),
+    create_assignment: ($) =>
+      choice(
+        seq($.identifier, "=", $.expression),
+        seq($.identifier, "=>", $.identifier),
+      ),
+
+    merge_statement: ($) =>
+      choice(
+        seq(
+          "MERGE",
+          "(",
+          $.identifier,
+          ":",
+          $.identifier,
+          $.pattern_object,
+          ")",
+          repeat($.merge_action),
+        ),
+        seq("MERGE", "OBJECT", $.identifier, "WITH", $.parameter_ref),
+      ),
+    merge_action: ($) =>
+      seq("ON", choice("CREATE", "MATCH"), "SET", $.set_assignments),
+
+    set_statement: ($) =>
+      seq(
+        "SET",
+        choice(
+          $.set_assignments,
+          $.set_isolation,
+          seq("CONSTRAINT", "LIMIT", $.identifier, "=", $.expression),
+          seq("UDF", "LIMIT", $.identifier, "=", $.expression),
+        ),
+      ),
+    set_assignments: ($) => commaSep1($.set_assignment),
+    set_assignment: ($) =>
+      choice(
+        seq($.identifier, choice("=", "+="), $.expression),
+        seq($.member_access, choice("=", "+=", "-="), $.expression),
+      ),
+
+    delete_statement: ($) =>
+      seq(optional("DETACH"), "DELETE", commaSep1($.identifier)),
+
+    // --- ALTER FIELD ops ---
+    alter_field_entry: ($) => seq($.identifier, $.alter_field_ops),
+
+    alter_field_ops: ($) =>
+      choice(
+        $.alter_field_op, // Level 1: single op
+        seq("[", commaSep($.alter_field_op), "]"), // Level 2: batch ops
+      ),
+
+    alter_field_op: ($) =>
+      choice(
+        seq("SET", "TYPE", $.type),
+        seq("ADD", $.decorator),
+        seq("DROP", $.decorator),
+        seq("SET", "DEFAULT", $.expression),
+        seq("DROP", "DEFAULT"),
+      ),
+
+    // --- ALTER ROLE ops ---
+    alter_role_entry: ($) => seq($.identifier, $.alter_role_ops),
+
+    alter_role_ops: ($) =>
+      choice(
+        $.alter_role_op, // Level 1: single op
+        seq("[", commaSep($.alter_role_op), "]"), // Level 2: batch ops
+      ),
+
+    alter_role_op: ($) =>
+      choice(
+        seq("ADD", "ALLOWS", $.identifier, optional($.role_constraint_block)),
+        seq("DROP", "ALLOWS", $.identifier),
+        seq(
+          "ADD",
+          "CONSTRAINT",
+          optional(seq($.identifier, ":")),
+          $.expression,
+        ),
+        seq("DROP", "CONSTRAINT", $.identifier),
+      ),
+
+    alter_statement: ($) =>
+      seq(
+        "ALTER",
+        choice(
+          // NODE — levels 1 & 2
+          seq(
+            "NODE",
+            choice(
+              seq($.identifier, $.alter_ops),
+              seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+            ),
+          ),
+          // EDGE — levels 1 & 2
+          seq(
+            "EDGE",
+            choice(
+              seq($.identifier, $.alter_ops),
+              seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+            ),
+          ),
+          // FIELD — levels 1 & 2
+          seq(
+            "FIELD",
+            choice(
+              $.alter_field_entry,
+              seq("[", commaSep1($.alter_field_entry), "]"),
+            ),
+          ),
+          // ROLE — levels 1 & 2
+          seq(
+            "ROLE",
+            choice(
+              $.alter_role_entry,
+              seq("[", commaSep1($.alter_role_entry), "]"),
+            ),
+          ),
+          // Level 4 bulk mixed
+          $.bulk_alter_block,
+          // Non-type-hierarchy forms
+          seq("SCHEMA", $.identifier, "[", repeat($.alter_schema_entry), "]"),
+          seq(
+            "USER",
+            $.identifier,
+            choice(
+              seq("SET", "PASSWORD", $.string),
+              seq("ADD", "ROLES", "[", commaSep($.identifier), "]"),
+              seq("REMOVE", "ROLES", "[", commaSep($.identifier), "]"),
+            ),
+          ),
+          seq(
+            "NAMESPACE",
+            $.dotted_identifier,
+            "SET",
+            "STRICT_PERMISSIONS",
+            choice("ON", "OFF"),
+          ),
+        ),
+      ),
+
+    alter_ops: ($) =>
+      choice(
+        $.alter_entry, // Level 1: ALTER NODE Person ADD field
+        seq("[", commaSep($.alter_entry), "]"), // Level 2: ALTER NODE Person [ ADD x, DROP y ]
+      ),
+
+    bulk_alter_block: ($) =>
+      seq(
+        "[",
+        commaSep1(
+          choice(
+            seq(
+              "NODE",
+              choice(
+                seq($.identifier, $.alter_ops),
+                seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+              ),
+            ),
+            seq(
+              "EDGE",
+              choice(
+                seq($.identifier, $.alter_ops),
+                seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+              ),
+            ),
+            seq(
+              "FIELD",
+              choice(
+                $.alter_field_entry,
+                seq("[", commaSep1($.alter_field_entry), "]"),
+              ),
+            ),
+            seq(
+              "ROLE",
+              choice(
+                $.alter_role_entry,
+                seq("[", commaSep1($.alter_role_entry), "]"),
+              ),
+            ),
+          ),
+        ),
+        "]",
+      ),
+
+    alter_entry: ($) =>
+      choice(
+        seq("ADD", $.identifier, repeat($.decorator)),
+        seq("DROP", $.identifier),
+        seq("RENAME", $.identifier, "TO", $.identifier),
+        seq(
+          "ADD",
+          "CONSTRAINT",
+          optional(seq($.identifier, ":")),
+          $.expression,
+        ),
+        seq("DROP", "CONSTRAINT", $.identifier),
+        seq(
+          "ADD",
+          "ROLE",
+          choice($.role_entry, seq("[", commaSep1($.role_entry), "]")),
+        ),
+        seq(
+          "DROP",
+          "ROLE",
+          choice($.identifier, seq("[", commaSep1($.identifier), "]")),
+        ),
+      ),
+    alter_schema_entry: ($) =>
+      seq(
+        choice("ADD", "DROP", "RENAME"),
+        $.identifier,
+        optional(seq("TO", $.identifier)),
+      ),
+
+    drop_statement: ($) =>
+      seq(
+        "DROP",
+        choice(
+          "USER",
+          "SCHEMA",
+          "NODE",
+          "EDGE",
+          "FIELD",
+          "PREPARE",
+          seq("ROLE", choice($.identifier, seq("[", commaSep1($.identifier), "]"))),
+        ),
+        optional($.identifier),
+      ),
+
+    migrate_statement: ($) =>
+      choice(
+        seq(
+          "MIGRATE",
+          $.identifier,
+          "TO",
+          $.identifier,
+          optional(seq("MAP", $.object_literal)),
+          optional(seq("DEFAULTS", $.object_literal)),
+        ),
+        seq(
+          "VALIDATE",
+          "MIGRATION",
+          $.identifier,
+          "TO",
+          $.identifier,
+          optional(seq("MAP", $.object_literal)),
+          optional(seq("DEFAULTS", $.object_literal)),
+        ),
+      ),
 
     // --- Transactions ---
-    transaction_statement: $ => seq(
-      choice('BEGIN', 'COMMIT', 'ROLLBACK'),
-      optional(seq('ISOLATION', 'LEVEL', $.identifier)),
-      optional('ON ERROR CONTINUE')
-    ),
+    transaction_statement: ($) =>
+      seq(
+        choice("BEGIN", "COMMIT", "ROLLBACK"),
+        optional(seq("ISOLATION", "LEVEL", $.identifier)),
+        optional(seq("ON", "ERROR", "CONTINUE")),
+      ),
 
-    set_isolation: $ => seq('ISOLATION', 'LEVEL', $.identifier),
+    set_isolation: ($) => seq("ISOLATION", "LEVEL", $.identifier),
 
     // --- Imports ---
-    import_statement: $ => seq(
-      'IMPORT',
-      choice(
-        seq($.identifier, repeat(seq('.', $.identifier))),
-        seq('SCHEMA', $.identifier, 'FROM', $.identifier, repeat(seq('.', $.identifier))),
-        seq($.string, 'AS', $.identifier)
-      )
-    ),
+    import_statement: ($) =>
+      seq(
+        "IMPORT",
+        choice(
+          seq($.identifier, repeat(seq(".", $.identifier))),
+          seq(
+            "SCHEMA",
+            $.identifier,
+            "FROM",
+            $.identifier,
+            repeat(seq(".", $.identifier)),
+          ),
+          seq($.string, "AS", $.identifier),
+        ),
+      ),
 
     // --- Introspection ---
-    introspection_statement: $ => seq(
+    introspection_statement: ($) =>
       choice(
-        seq('SHOW', choice('ACCESS', 'USERS', 'PERMISSIONS', 'EFFECTIVE', 'NAMESPACE', 'SCHEMA', 'FIELD', 'NODE', 'EDGE', 'ROLE')),
-        seq('VALIDATE', 'SCHEMA', $.identifier)
+        seq(
+          "SHOW",
+          choice(
+            seq("ACCESS", "POLICIES", "ON", $.identifier),
+            seq("ACCESS", "ROLES"),
+            seq(
+              "EFFECTIVE",
+              "PERMISSIONS",
+              "FOR",
+              $.identifier,
+              "ON",
+              "NAMESPACE",
+              $.dotted_identifier,
+            ),
+            seq("PERMISSIONS", "FOR", $.identifier),
+            seq("PREPARED", "STATEMENTS"),
+            seq(
+              choice("NAMESPACE", "SCHEMA", "FIELD", "NODE", "EDGE", "ROLE"),
+              $.dotted_identifier,
+            ),
+            "USERS",
+          ),
+        ),
+        seq("VALIDATE", "SCHEMA", $.identifier),
       ),
-      repeat($.identifier)
-    ),
 
     // --- Security ---
-    access_role_definition: $ => seq(
-      'ACCESS', 'ROLE', $.identifier,
-      '[', repeat($.access_entry), ']'
-    ),
-    access_entry: $ => seq(
-      choice('GRANT', 'DENY'),
-      choice('NAMESPACE', 'NODE', 'EDGE', 'FIELD'),
-      $.identifier,
-      'PERMISSIONS', '[', commaSep($.identifier), ']',
-      optional(choice('CASCADE', 'NO CASCADE'))
-    ),
+    access_role_definition: ($) =>
+      seq("ACCESS", "ROLE", $.identifier, "[", repeat($.access_entry), "]"),
+    access_entry: ($) =>
+      seq(
+        choice("GRANT", "DENY"),
+        choice("NAMESPACE", "NODE", "EDGE", "FIELD"),
+        $.dotted_identifier,
+        "PERMISSIONS",
+        "[",
+        commaSep($.identifier),
+        "]",
+        optional(choice("CASCADE", seq("NO", "CASCADE"))),
+      ),
 
-    access_policy_definition: $ => seq(
-      'ACCESS', 'POLICY', $.identifier, 'ON', $.identifier, 'FOR', 'ACCESS', 'ROLE', $.identifier, 'USING', '(', $.expression, ')'
-    ),
+    access_policy_definition: ($) =>
+      seq(
+        "ACCESS",
+        "POLICY",
+        $.identifier,
+        "ON",
+        $.identifier,
+        "FOR",
+        "ACCESS",
+        "ROLE",
+        $.identifier,
+        "USING",
+        "(",
+        $.expression,
+        ")",
+      ),
+
+    prepare_statement: ($) =>
+      seq(
+        "PREPARE",
+        optional("PERSISTENT"),
+        $.identifier,
+        "AS",
+        $.query_statement,
+      ),
+
+    execute_statement: ($) =>
+      seq("EXECUTE", $.identifier, optional(seq("WITH", $.object_literal))),
 
     // --- Expressions ---
-    expression: $ => choice(
-      $.conditional_expression,
-      $.binary_expression,
-      $.unary_expression,
-      $.primary_expression
-    ),
+    expression: ($) =>
+      choice(
+        $.conditional_expression,
+        $.binary_expression,
+        $.unary_expression,
+        $.primary_expression,
+      ),
 
-    binary_expression: $ => choice(
-      ...[
-        ['||', 20],
-        ['&&', 30],
-        ['==', 40],
-        ['!=', 40],
-        ['<', 50],
-        ['>', 50],
-        ['<=', 50],
-        ['>=', 50],
-        ['IN', 50],
-        ['|', 55],
-        ['&', 55],
-        ['+', 60],
-        ['-', 60],
-        ['*', 70],
-        ['/', 70],
-        ['%', 70],
-        ['??', 75],
-        ['LIKE', 50],
-        ['ILIKE', 50],
-        ['MATCHES', 50],
-        ['IMATCHES', 50],
-      ].map(([operator, precedence]) =>
-        prec.left(precedence, seq($.expression, operator, $.expression))
-      )
-    ),
+    binary_expression: ($) =>
+      choice(
+        ...[
+          ["||", 20],
+          ["&&", 30],
+          ["==", 40],
+          ["!=", 40],
+          ["<", 50],
+          [">", 50],
+          ["<=", 50],
+          [">=", 50],
+          ["IN", 50],
+          ["|", 55],
+          ["&", 55],
+          ["+", 60],
+          ["-", 60],
+          ["*", 70],
+          ["/", 70],
+          ["%", 70],
+          ["??", 75],
+          ["LIKE", 50],
+          ["ILIKE", 50],
+          ["MATCHES", 50],
+          ["IMATCHES", 50],
+        ].map(([operator, precedence]) =>
+          prec.left(precedence, seq($.expression, operator, $.expression)),
+        ),
+      ),
 
-    unary_expression: $ => choice(
-      prec(80, seq(choice('!', '-', '~'), $.expression)),
-      prec(10, seq($.expression, 'IS', optional('NOT'), 'NULL'))
-    ),
+    unary_expression: ($) =>
+      choice(
+        prec(80, seq(choice("!", "-", "~"), $.expression)),
+        prec(10, seq($.expression, "IS", optional("NOT"), "NULL")),
+      ),
 
-    primary_expression: $ => choice(
-      $.literal,
-      $.identifier,
-      $.member_access,
-      $.function_call,
-      $.subquery_expression,
-      $.parameter_ref,
-      $.enum_shorthand,
-      seq('(', $.expression, ')')
-    ),
+    primary_expression: ($) =>
+      choice(
+        $.literal,
+        $.identifier,
+        $.member_access,
+        $.index_access,
+        $.list_literal,
+        $.window_call,
+        $.function_call,
+        $.subquery_expression,
+        $.parameter_ref,
+        $.enum_shorthand,
+        seq("(", $.expression, ")"),
+      ),
 
-    conditional_expression: $ => choice(
-      $.if_expression,
-      $.case_expression,
-      $.match_expression
-    ),
+    index_access: ($) =>
+      prec.left(110, seq($.expression, "[", $.expression, "]")),
 
-    if_expression: $ => seq('IF', $.expression, 'THEN', $.expression, 'ELSE', $.expression),
+    list_literal: ($) => seq("[", commaSep($.expression), "]"),
 
-    case_expression: $ => seq(
-      'CASE',
-      optional($.expression),
-      repeat1(seq('WHEN', $.expression, 'THEN', $.expression)),
-      optional(seq('ELSE', $.expression)),
-      'END'
-    ),
+    window_call: ($) =>
+      seq(
+        $.identifier,
+        "(",
+        commaSep($.expression),
+        ")",
+        "OVER",
+        "(",
+        optional($.window_spec),
+        ")",
+      ),
 
-    match_expression: $ => seq(
-      'MATCH', $.expression, '{',
-      commaSep1(seq($.expression, '=>', $.expression)),
-      '}'
-    ),
+    window_spec: ($) =>
+      choice(
+        seq(
+          $.partition_by_clause,
+          optional($.order_by_clause),
+          optional($.window_frame),
+        ),
+        seq($.order_by_clause, optional($.window_frame)),
+        $.window_frame,
+      ),
 
-    subquery_expression: $ => seq(
-      choice('EXISTS', seq($.expression, 'IN')),
-      '(', repeat1($.query_clause), ')'
-    ),
+    partition_by_clause: ($) => seq("PARTITION", "BY", commaSep1($.expression)),
 
-    member_access: $ => choice(
-      prec.left(100, seq($.expression, choice('.', '?.'), $.identifier)),
-      prec.left(100, seq('this', '.', $.identifier))
-    ),
+    window_frame: ($) =>
+      seq(
+        choice("ROWS", "RANGE"),
+        choice(
+          seq("BETWEEN", $.frame_bound, "AND", $.frame_bound),
+          $.frame_bound,
+        ),
+      ),
 
-    function_call: $ => prec(90, seq($.identifier, '(', commaSep($.expression), ')')),
+    frame_bound: ($) =>
+      choice(
+        "CURRENT ROW",
+        seq("UNBOUNDED", choice("PRECEDING", "FOLLOWING")),
+        seq($.expression, choice("PRECEDING", "FOLLOWING")),
+      ),
 
-    parameter_ref: $ => seq('$', $.identifier, optional(seq(':', $.type))),
+    conditional_expression: ($) =>
+      choice($.if_expression, $.case_expression, $.match_expression),
 
-    enum_shorthand: $ => seq('.', $.identifier),
+    if_expression: ($) =>
+      seq("IF", $.expression, "THEN", $.expression, "ELSE", $.expression),
+
+    case_expression: ($) =>
+      seq(
+        "CASE",
+        optional($.expression),
+        repeat1(seq("WHEN", $.expression, "THEN", $.expression)),
+        optional(seq("ELSE", $.expression)),
+        "END",
+      ),
+
+    match_expression: ($) =>
+      seq(
+        "MATCH",
+        $.expression,
+        "{",
+        commaSep1(seq($.expression, "=>", $.expression)),
+        "}",
+      ),
+
+    subquery_expression: ($) =>
+      seq(
+        choice("EXISTS", seq($.expression, "IN")),
+        "(",
+        repeat1($.query_clause),
+        ")",
+      ),
+
+    member_access: ($) =>
+      choice(
+        prec.left(100, seq($.expression, choice(".", "?."), $.identifier)),
+        prec.left(100, seq("this", ".", $.identifier)),
+      ),
+
+    function_call: ($) =>
+      prec(
+        90,
+        seq($.identifier, "(", choice(alias("*", $.star_arg), commaSep($.expression)), ")"),
+      ),
+
+    parameter_ref: ($) => seq("$", $.identifier, optional(seq(":", $.type))),
+
+    enum_shorthand: ($) => seq(".", $.identifier),
 
     // --- Scripting / Blocks ---
-    block: $ => seq('{', repeat($.script_statement), '}'),
-    script_statement: $ => choice(
-      $.var_decl,
-      $.const_decl,
-      $.while_stmt,
-      $.for_in_stmt,
-      $.if_else_stmt,
-      $.return_stmt,
-      $.assign_stmt,
-      $.break_stmt,
-      $.continue_stmt,
-      seq($.expression, ';')
-    ),
+    block: ($) => seq("{", repeat($.script_statement), "}"),
+    script_statement: ($) =>
+      choice(
+        $.var_decl,
+        $.const_decl,
+        $.while_stmt,
+        $.for_in_stmt,
+        $.if_else_stmt,
+        $.return_stmt,
+        $.assign_stmt,
+        $.break_stmt,
+        $.continue_stmt,
+        seq($.expression, ";"),
+      ),
 
-    var_decl: $ => seq('VAR', $.identifier, optional(seq(':', $.type)), optional(seq('=', $.expression)), ';'),
-    const_decl: $ => seq('CONST', $.identifier, optional(seq(':', $.type)), '=', $.expression, ';'),
-    while_stmt: $ => seq('WHILE', '(', $.expression, ')', $.block),
-    for_in_stmt: $ => seq('FOR', '(', $.identifier, 'IN', $.expression, ')', $.block),
-    if_else_stmt: $ => seq('IF', '(', $.expression, ')', $.block, optional(seq('ELSE', $.block))),
-    return_stmt: $ => seq('RETURN', $.expression, ';'),
-    assign_stmt: $ => seq($.identifier, '=', $.expression, ';'),
-    break_stmt: $ => seq('BREAK', ';'),
-    continue_stmt: $ => seq('CONTINUE', ';'),
+    var_decl: ($) =>
+      seq(
+        "VAR",
+        $.identifier,
+        optional(seq(":", $.type)),
+        optional(seq("=", $.expression)),
+        ";",
+      ),
+    const_decl: ($) =>
+      seq(
+        "CONST",
+        $.identifier,
+        optional(seq(":", $.type)),
+        "=",
+        $.expression,
+        ";",
+      ),
+    while_stmt: ($) => seq("WHILE", "(", $.expression, ")", $.block),
+    for_in_stmt: ($) =>
+      seq("FOR", "(", $.identifier, "IN", $.expression, ")", $.block),
+    if_else_stmt: ($) =>
+      seq(
+        "IF",
+        "(",
+        $.expression,
+        ")",
+        $.block,
+        optional(seq("ELSE", $.block)),
+      ),
+    return_stmt: ($) => seq("RETURN", $.expression, ";"),
+    assign_stmt: ($) => seq($.identifier, "=", $.expression, ";"),
+    break_stmt: ($) => seq("BREAK", ";"),
+    continue_stmt: ($) => seq("CONTINUE", ";"),
 
     // --- Basic Tokens ---
-    identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
+    identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
+    dotted_identifier: ($) => seq($.identifier, repeat(seq(".", $.identifier))),
 
-    type: $ => seq(
-      $.identifier,
-      optional(seq('<', commaSep1($.type), '>')),
-      optional('?')
-    ),
+    type: ($) =>
+      seq(
+        $.identifier,
+        optional(seq("<", commaSep1($.type), ">")),
+        optional("?"),
+      ),
 
-    primitive_type: $ => choice('INT', 'FLOAT', 'STRING', 'BOOL', 'DATE', 'UUID', 'DECIMAL', 'FLAGS'),
+    primitive_type: ($) =>
+      choice(
+        "INT",
+        "FLOAT",
+        "STRING",
+        "BOOL",
+        "DATE",
+        "UUID",
+        "DECIMAL",
+        "FLAGS",
+      ),
 
-    decorator: $ => /@[a-zA-Z_][a-zA-Z0-9_]*/,
+    decorator: ($) =>
+      seq(
+        /@[a-zA-Z_][a-zA-Z0-9_]*/,
+        optional(seq("(", commaSep($.expression), ")")),
+      ),
 
-    literal: $ => choice(
-      $.string,
-      $.number,
-      $.boolean,
-      'null'
-    ),
+    literal: ($) => choice($.string, $.number, $.boolean, "null"),
 
-    string: $ => /"([^"\\]|\\.)*"/,
-    number: $ => /-?\d+(\.\d+)?d?/,
-    boolean: $ => choice('true', 'false'),
+    string: ($) => /"([^"\\]|\\.)*"/,
+    number: ($) => /-?\d+(\.\d+)?d?/,
+    boolean: ($) => choice("true", "false"),
 
-    comment: $ => /--.*/,
+    comment: ($) => /--.*/,
 
-    parameter: $ => seq($.identifier, ':', $.type),
+    parameter: ($) => seq($.identifier, ":", $.type),
 
-    batch_id_list: $ => seq('[', commaSep1($.identifier), ']'),
-    batch_node_list: $ => seq('[', commaSep1(seq(optional('ABSTRACT'), $.identifier, $.node_body, optional($.metadata_block))), ']'),
-    batch_edge_list: $ => seq('[', commaSep1(seq(optional('ABSTRACT'), $.identifier, $.edge_body, optional($.metadata_block))), ']'),
-
-    object_literal: $ => seq('{', commaSep(seq($.identifier, choice(':', '='), $.expression)), '}')
-  }
+    object_literal: ($) =>
+      seq(
+        "{",
+        commaSep(seq($.identifier, choice(":", "="), $.expression)),
+        "}",
+      ),
+  },
 });
 
 function commaSep(rule) {
@@ -543,5 +1085,5 @@ function commaSep(rule) {
 }
 
 function commaSep1(rule) {
-  return seq(rule, repeat(seq(',', rule)), optional(','));
+  return seq(rule, repeat(seq(",", rule)), optional(","));
 }

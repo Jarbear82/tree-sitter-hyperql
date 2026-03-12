@@ -1,0 +1,265 @@
+==================
+Create Node Singular
+==================
+CREATE NODE alice: Person {
+    name = "Alice",
+    age = 30
+};
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (create_body
+        (singular_create
+          (create_node_entry
+            (identifier)
+            (identifier)
+            (create_body_block
+              (create_assignment
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string)))))
+              (create_assignment
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))))))))
+
+==================
+Create Node Singular Minimal
+==================
+CREATE NODE n: Dog {
+    name = "Rex"
+};
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (create_body
+        (singular_create
+          (create_node_entry
+            (identifier)
+            (identifier)
+            (create_body_block
+              (create_assignment
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string))))))))))))
+
+==================
+Create Node Batch
+==================
+CREATE NODE [
+    alice: Person { name = "Alice", age = 30 },
+    bob: Person { name = "Bob", age = 25 }
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (create_body
+        (same_type_create_batch
+          (create_node_batch
+            (create_node_entry
+              (identifier)
+              (identifier)
+              (create_body_block
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number)))))))
+            (create_node_entry
+              (identifier)
+              (identifier)
+              (create_body_block
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number)))))))))))))
+
+==================
+Create Edge Singular
+==================
+CREATE EDGE e: Knows {
+    from => alice,
+    to => bob,
+    since = "2022-01-01"
+};
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (create_body
+        (singular_create
+          (create_edge_entry
+            (identifier)
+            (identifier)
+            (create_body_block
+              (create_assignment
+                (identifier)
+                (identifier))
+              (create_assignment
+                (identifier)
+                (identifier))
+              (create_assignment
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string))))))))))))
+
+==================
+Create Edge Batch
+==================
+CREATE EDGE [
+    e1: Drives { driver => alice, vehicle => car1 },
+    e2: Drives { driver => bob, vehicle => car2 }
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (create_body
+        (same_type_create_batch
+          (create_edge_batch
+            (create_edge_entry
+              (identifier)
+              (identifier)
+              (create_body_block
+                (create_assignment
+                  (identifier)
+                  (identifier))
+                (create_assignment
+                  (identifier)
+                  (identifier))))
+            (create_edge_entry
+              (identifier)
+              (identifier)
+              (create_body_block
+                (create_assignment
+                  (identifier)
+                  (identifier))
+                (create_assignment
+                  (identifier)
+                  (identifier))))))))))
+
+==================
+Create Mixed Batch
+==================
+CREATE [
+    NODE [
+        alice: Person { name = "Alice", age = 30 },
+        techcorp: Company { name = "TechCorp" }
+    ],
+    EDGE [
+        job: Employment { employee => alice, employer => techcorp, start_date = "2020-06-01" }
+    ]
+];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (mixed_create_batch
+        (create_item
+          (create_node_batch
+            (create_node_entry
+              (identifier)
+              (identifier)
+              (create_body_block
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number)))))))
+            (create_node_entry
+              (identifier)
+              (identifier)
+              (create_body_block
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))))))
+        (create_item
+          (create_edge_batch
+            (create_edge_entry
+              (identifier)
+              (identifier)
+              (create_body_block
+                (create_assignment
+                  (identifier)
+                  (identifier))
+                (create_assignment
+                  (identifier)
+                  (identifier))
+                (create_assignment
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))))))))))
+
+==================
+Create User Basic
+==================
+CREATE USER alice WITH PASSWORD "s3cr3tP@ss";
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (create_body
+        (singular_create
+          (identifier)
+          (string))))))
+
+==================
+Create User With Roles
+==================
+CREATE USER bob WITH PASSWORD "p@ssw0rd" ROLES [AdminRole, ReaderRole];
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (create_body
+        (singular_create
+          (identifier)
+          (string)
+          (identifier)
+          (identifier))))))

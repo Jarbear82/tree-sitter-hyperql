@@ -1,0 +1,452 @@
+==================
+Graph Algorithm PAGERANK
+==================
+WITH PAGERANK(Person, Knows) AS pr
+MATCH (p:Person)
+RETURN p.name, pr[p._id] AS pageRank
+ORDER BY pageRank DESC;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (with_clause
+          (with_entry
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier))))
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (index_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (identifier))))))))))
+
+==================
+Graph Algorithm PAGERANK With Options
+==================
+WITH PAGERANK(Person, Knows, damping: 0.85, max_iterations: 50, tolerance: 0.0001) AS pr
+MATCH (p:Person)
+RETURN p.name, pr[p._id] AS rank;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (with_clause
+          (with_entry
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (number))))
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (number))))
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (number))))
+            (identifier))))
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (index_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier)))))))
+
+==================
+Graph Algorithm LOUVAIN Community Detection
+==================
+WITH LOUVAIN(Person, Knows, resolution: 1.0, seed: 42) AS communities
+MATCH (p:Person)
+RETURN p.name, communities[p._id] AS communityId;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (with_clause
+          (with_entry
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (number))))
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (number))))
+            (identifier))))
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (index_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier)))))))
+
+==================
+Graph Algorithm BETWEENNESS_CENTRALITY
+==================
+WITH BETWEENNESS_CENTRALITY(Person, Knows, normalized: true) AS bc
+MATCH (p:Person)
+RETURN p.name, bc[p._id] AS centrality
+ORDER BY centrality DESC
+LIMIT 10;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (with_clause
+          (with_entry
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (boolean))))
+            (identifier))))
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (index_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (identifier)))))
+          (limit_clause
+            (expression
+              (primary_expression
+                (literal
+                  (number))))))))))
+
+==================
+Graph Algorithm CONNECTED_COMPONENTS
+==================
+WITH CONNECTED_COMPONENTS(Person, Knows, directed: false) AS cc
+MATCH (p:Person)
+RETURN p.name, cc[p._id] AS componentId;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (with_clause
+          (with_entry
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (expression
+              (primary_expression
+                (literal
+                  (boolean))))
+            (identifier))))
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (index_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier)))))))
+
+==================
+Graph Algorithm TRIANGLE_COUNT
+==================
+WITH TRIANGLE_COUNT(Person, Knows) AS tc
+MATCH (p:Person)
+RETURN p.name, tc[p._id] AS triangles
+ORDER BY triangles DESC;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (with_clause
+          (with_entry
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier))))
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (member_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (identifier)))))
+          (return_entry
+            (expression
+              (primary_expression
+                (index_access
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier))
+          (order_by_clause
+            (order_entry
+              (expression
+                (primary_expression
+                  (identifier))))))))))
+
+==================
+Scalar Similarity JACCARD_SIMILARITY
+==================
+MATCH (a:Person { name: "Alice" }), (b:Person { name: "Bob" })
+RETURN JACCARD_SIMILARITY(a, b, Knows) AS similarity;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string)))))))
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string)))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (identifier))))))
+            (identifier)))))))
+
+==================
+Scalar Similarity COSINE_SIMILARITY
+==================
+MATCH (a:Person { name: "Alice" }), (b:Person { name: "Bob" })
+RETURN COSINE_SIMILARITY(a, b, embedding) AS similarity;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string)))))))
+          (pattern
+            (identifier)
+            (identifier)
+            (pattern_object
+              (pattern_prop
+                (identifier)
+                (expression
+                  (primary_expression
+                    (literal
+                      (string)))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (identifier)))
+                  (expression
+                    (primary_expression
+                      (identifier))))))
+            (identifier)))))))

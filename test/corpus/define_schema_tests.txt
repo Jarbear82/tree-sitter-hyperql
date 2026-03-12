@@ -1,0 +1,114 @@
+==================
+Schema Empty
+==================
+DEFINE SCHEMA FamilySchema [];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (schema_definition
+          (identifier))))))
+
+==================
+Schema With Definitions
+==================
+DEFINE SCHEMA HRSchema [
+    FIELD employee_id: UUID @unique,
+    FIELD department: String,
+    NODE Employee { employee_id, department },
+    EDGE ReportsTo {
+        employee -> (1),
+        manager -> (1)
+    }
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (schema_definition
+          (identifier)
+          (contained_definition
+            (definition_item
+              (field_entry
+                (identifier)
+                (type
+                  (identifier))
+                (decorator))))
+          (contained_definition
+            (definition_item
+              (field_entry
+                (identifier)
+                (type
+                  (identifier)))))
+          (contained_definition
+            (definition_item
+              (node_entry_full
+                (identifier)
+                (node_body
+                  (node_entry
+                    (node_storage_entry
+                      (identifier)))
+                  (node_entry
+                    (node_storage_entry
+                      (identifier)))))))
+          (contained_definition
+            (definition_item
+              (edge_entry_full
+                (identifier)
+                (edge_body
+                  (edge_entry
+                    (role_entry
+                      (identifier)
+                      (cardinality
+                        (number))))
+                  (edge_entry
+                    (role_entry
+                      (identifier)
+                      (cardinality
+                        (number)))))))))))))
+
+==================
+Schema Nested Namespace
+==================
+DEFINE SCHEMA CatalogSchema [
+    NAMESPACE Products [
+        FIELD sku: String @unique,
+        NODE Product { sku, name }
+    ]
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (schema_definition
+          (identifier)
+          (contained_definition
+            (definition_item
+              (namespace_body
+                (dotted_identifier
+                  (identifier))
+                (namespace_block
+                  (contained_definition
+                    (definition_item
+                      (field_entry
+                        (identifier)
+                        (type
+                          (identifier))
+                        (decorator))))
+                  (contained_definition
+                    (definition_item
+                      (node_entry_full
+                        (identifier)
+                        (node_body
+                          (node_entry
+                            (node_storage_entry
+                              (identifier)))
+                          (node_entry
+                            (node_storage_entry
+                              (identifier))))))))))))))))

@@ -1,0 +1,419 @@
+==================
+Function Pure Minimal
+==================
+DEFINE FUNCTION @pure Double(x: Int): Int {
+    RETURN x * 2;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (return_stmt
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (number))))))))))))))
+
+==================
+Function Pure Multi Param
+==================
+DEFINE FUNCTION @pure FullName(first: String, last: String): String {
+    RETURN first + " " + last;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (return_stmt
+                (expression
+                  (binary_expression
+                    (expression
+                      (binary_expression
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (expression
+                          (primary_expression
+                            (literal
+                              (string))))))
+                    (expression
+                      (primary_expression
+                        (identifier)))))))))))))
+
+==================
+Function Readonly
+==================
+DEFINE FUNCTION @readonly CurrentUserName(): String {
+    RETURN $current_user.name;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (return_stmt
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression
+                        (primary_expression
+                          (parameter_ref
+                            (identifier))))
+                      (identifier))))))))))))
+
+==================
+Function Nondeterministic
+==================
+DEFINE FUNCTION @nondeterministic RandomScore(): Float {
+    RETURN RANDOM() * 100.0;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (return_stmt
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (function_call
+                          (identifier))))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (number))))))))))))))
+
+==================
+Function With Local Variables
+==================
+DEFINE FUNCTION @pure Clamp(val: Int, lo: Int, hi: Int): Int {
+    VAR result: Int;
+    IF (val < lo) {
+        result = lo;
+    } ELSE {
+        IF (val > hi) {
+            result = hi;
+        } ELSE {
+            result = val;
+        }
+    }
+    RETURN result;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (var_decl
+                (identifier)
+                (type
+                  (identifier))))
+            (script_statement
+              (if_else_stmt
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (expression
+                      (primary_expression
+                        (identifier)))))
+                (block
+                  (script_statement
+                    (assign_stmt
+                      (identifier)
+                      (expression
+                        (primary_expression
+                          (identifier))))))
+                (block
+                  (script_statement
+                    (if_else_stmt
+                      (expression
+                        (binary_expression
+                          (expression
+                            (primary_expression
+                              (identifier)))
+                          (expression
+                            (primary_expression
+                              (identifier)))))
+                      (block
+                        (script_statement
+                          (assign_stmt
+                            (identifier)
+                            (expression
+                              (primary_expression
+                                (identifier))))))
+                      (block
+                        (script_statement
+                          (assign_stmt
+                            (identifier)
+                            (expression
+                              (primary_expression
+                                (identifier)))))))))))
+            (script_statement
+              (return_stmt
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+==================
+Function With While Loop
+==================
+DEFINE FUNCTION @pure Factorial(n: Int): Int {
+    VAR acc: Int = 1;
+    VAR i: Int = 1;
+    WHILE (i <= n) {
+        acc = acc * i;
+        i = i + 1;
+    }
+    RETURN acc;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (var_decl
+                (identifier)
+                (type
+                  (identifier))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))
+            (script_statement
+              (var_decl
+                (identifier)
+                (type
+                  (identifier))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))
+            (script_statement
+              (while_stmt
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (expression
+                      (primary_expression
+                        (identifier)))))
+                (block
+                  (script_statement
+                    (assign_stmt
+                      (identifier)
+                      (expression
+                        (binary_expression
+                          (expression
+                            (primary_expression
+                              (identifier)))
+                          (expression
+                            (primary_expression
+                              (identifier)))))))
+                  (script_statement
+                    (assign_stmt
+                      (identifier)
+                      (expression
+                        (binary_expression
+                          (expression
+                            (primary_expression
+                              (identifier)))
+                          (expression
+                            (primary_expression
+                              (literal
+                                (number)))))))))))
+            (script_statement
+              (return_stmt
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+==================
+Function With For In Loop
+==================
+DEFINE FUNCTION @pure SumList(items: List<Int>): Int {
+    VAR total: Int = 0;
+    FOR (item IN items) {
+        total = total + item;
+    }
+    RETURN total;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)
+              (type
+                (identifier))))
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (var_decl
+                (identifier)
+                (type
+                  (identifier))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))
+            (script_statement
+              (for_in_stmt
+                (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (block
+                  (script_statement
+                    (assign_stmt
+                      (identifier)
+                      (expression
+                        (binary_expression
+                          (expression
+                            (primary_expression
+                              (identifier)))
+                          (expression
+                            (primary_expression
+                              (identifier))))))))))
+            (script_statement
+              (return_stmt
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
+
+==================
+Function With Const
+==================
+DEFINE FUNCTION @pure TaxAmount(price: Float): Float {
+    CONST rate: Float = 0.08;
+    RETURN price * rate;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (identifier)))
+          (type
+            (identifier))
+          (block
+            (script_statement
+              (const_decl
+                (identifier)
+                (type
+                  (identifier))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))
+            (script_statement
+              (return_stmt
+                (expression
+                  (binary_expression
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (expression
+                      (primary_expression
+                        (identifier)))))))))))))
