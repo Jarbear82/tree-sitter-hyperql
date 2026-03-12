@@ -116,7 +116,7 @@ module.exports = grammar({
     field_definition: ($) => seq("FIELD", choice($.field_entry, $.field_batch)),
     field_entry: ($) =>
       seq(
-        $.identifier,
+        $.dotted_identifier,
         ":",
         $.type,
         repeat($.decorator),
@@ -126,22 +126,22 @@ module.exports = grammar({
 
     enum_definition: ($) => seq("ENUM", choice($.enum_entry_full, $.enum_batch)),
     enum_entry_full: ($) =>
-      seq($.identifier, optional(seq("<", $.primitive_type, ">")), $.enum_body),
+      seq($.dotted_identifier, optional(seq("<", $.primitive_type, ">")), $.enum_body),
     enum_body: ($) =>
-      seq("{", commaSep(seq($.identifier, optional(seq("=", $.literal)))), "}"),
+      seq("{", commaSep(seq($.dotted_identifier, optional(seq("=", $.literal)))), "}"),
     enum_batch: ($) => seq("[", commaSep1($.enum_entry_full), "]"),
 
     struct_definition: ($) =>
-      seq("STRUCT", $.identifier, "{", commaSep($.identifier), "}"),
+      seq("STRUCT", $.dotted_identifier, "{", commaSep($.identifier), "}"),
 
     trait_definition: ($) =>
-      seq("TRAIT", $.identifier, "{", commaSep($.identifier), "}"),
+      seq("TRAIT", $.dotted_identifier, "{", commaSep($.identifier), "}"),
 
     node_definition: ($) => seq("NODE", choice($.node_entry_full, $.node_batch)),
     node_entry_full: ($) =>
       seq(
         optional("ABSTRACT"),
-        $.identifier,
+        $.dotted_identifier,
         optional($.extends_clause),
         $.node_body,
         optional($.metadata_block),
@@ -152,7 +152,7 @@ module.exports = grammar({
     edge_entry_full: ($) =>
       seq(
         optional("ABSTRACT"),
-        $.identifier,
+        $.dotted_identifier,
         optional($.extends_clause),
         $.edge_body,
         optional($.metadata_block),
@@ -161,23 +161,23 @@ module.exports = grammar({
 
     role_definition: ($) =>
       seq("ROLE", choice($.role_entry_full, $.role_batch)),
-    role_entry_full: ($) => seq($.identifier, "ALLOWS", $.role_allows_list),
+    role_entry_full: ($) => seq($.dotted_identifier, "ALLOWS", $.role_allows_list),
     role_batch: ($) => seq("[", commaSep1($.role_entry_full), "]"),
 
     role_allows_list: ($) =>
       choice(
         // Singular, no constraint
-        $.identifier,
+        $.dotted_identifier,
         // Singular, with constraint
-        seq($.identifier, ":", $.role_constraint_block),
+        seq($.dotted_identifier, ":", $.role_constraint_block),
         // Batch, no constraint
-        seq("[", commaSep($.identifier), "]"),
+        seq("[", commaSep($.dotted_identifier), "]"),
         // Batch, unified constraint
-        seq("[", commaSep1($.identifier), "]", ":", $.role_constraint_block),
+        seq("[", commaSep1($.dotted_identifier), "]", ":", $.role_constraint_block),
         // Batch, type-specific constraints
         seq(
           "[",
-          commaSep1(seq($.identifier, ":", $.role_constraint_block)),
+          commaSep1(seq($.dotted_identifier, ":", $.role_constraint_block)),
           "]",
         ),
       ),
@@ -187,18 +187,18 @@ module.exports = grammar({
     extends_clause: ($) =>
       seq(
         "EXTENDS",
-        choice($.identifier, seq("[", commaSep1($.identifier), "]")),
+        choice($.dotted_identifier, seq("[", commaSep1($.dotted_identifier), "]")),
       ),
 
     node_body: ($) => seq("{", commaSep($.node_entry), "}"),
     node_entry: ($) => choice($.node_storage_entry, $.node_computed_entry),
 
     node_storage_entry: ($) =>
-      seq($.identifier, optional(seq("DEFAULT", $.expression))),
+      seq($.dotted_identifier, optional(seq("DEFAULT", $.expression))),
 
     node_computed_entry: ($) =>
       seq(
-        $.identifier,
+        $.dotted_identifier,
         ":",
         $.type,
         repeat($.decorator),
@@ -215,7 +215,7 @@ module.exports = grammar({
       ),
 
     role_entry: ($) =>
-      seq($.identifier, choice("<-", "->", "<->"), $.cardinality),
+      seq($.dotted_identifier, choice("<-", "->", "<->"), $.cardinality),
 
     cardinality: ($) =>
       seq(
@@ -343,7 +343,7 @@ module.exports = grammar({
         seq(
           "(",
           $.identifier,
-          optional(seq(":", $.identifier)),
+          optional(seq(":", $.dotted_identifier)),
           optional($.pattern_object),
           ")",
         ),
@@ -352,8 +352,8 @@ module.exports = grammar({
 
     pattern_object: ($) =>
       seq("{", commaSep(choice($.pattern_prop, $.pattern_role)), "}"),
-    pattern_prop: ($) => seq($.identifier, choice(":", "="), $.expression),
-    pattern_role: ($) => seq($.identifier, "=>", $.identifier),
+    pattern_prop: ($) => seq($.dotted_identifier, choice(":", "="), $.expression),
+    pattern_role: ($) => seq($.dotted_identifier, "=>", $.dotted_identifier),
 
     path_pattern: ($) =>
       seq(
@@ -363,7 +363,7 @@ module.exports = grammar({
         "-",
         "[",
         ":",
-        $.identifier,
+        $.dotted_identifier,
         "*",
         optional($.identifier),
         "]",
@@ -471,16 +471,16 @@ module.exports = grammar({
         seq("EDGE", choice($.create_edge_entry, $.create_edge_batch)),
       ),
 
-    create_node_entry: ($) => seq($.identifier, ":", $.identifier, $.create_body_block),
-    create_edge_entry: ($) => seq($.identifier, ":", $.identifier, $.create_body_block),
+    create_node_entry: ($) => seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
+    create_edge_entry: ($) => seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
     create_node_batch: ($) => seq("[", commaSep1($.create_node_entry), "]"),
     create_edge_batch: ($) => seq("[", commaSep1($.create_edge_entry), "]"),
 
     create_body_block: ($) => seq("{", commaSep($.create_assignment), "}"),
     create_assignment: ($) =>
       choice(
-        seq($.identifier, "=", $.expression),
-        seq($.identifier, "=>", $.identifier),
+        seq($.dotted_identifier, "=", $.expression),
+        seq($.dotted_identifier, "=>", $.dotted_identifier),
       ),
 
     merge_statement: ($) =>
@@ -1038,7 +1038,7 @@ module.exports = grammar({
 
     type: ($) =>
       seq(
-        $.identifier,
+        $.dotted_identifier,
         optional(seq("<", commaSep1($.type), ">")),
         optional("?"),
       ),
