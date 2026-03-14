@@ -1079,8 +1079,10 @@ module.exports = grammar({
         $.subquery_expression,
         $.parameter_ref,
         $.enum_shorthand,
-        seq("(", $.expression, ")"),
+        $.parenthesized_expression,
       ),
+
+    parenthesized_expression: ($) => seq("(", $.expression, ")"),
 
     index_access: ($) =>
       prec.left(110, seq($.expression, "[", $.expression, "]")),

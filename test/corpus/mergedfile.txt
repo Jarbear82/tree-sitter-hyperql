@@ -7349,37 +7349,39 @@ RETURN (p.base_salary + p.bonus) * (1.0 - p.tax_rate) AS net_pay;
               (binary_expression
                 (expression
                   (primary_expression
-                    (expression
-                      (binary_expression
-                        (expression
-                          (primary_expression
-                            (member_access
-                              (expression
-                                (primary_expression
-                                  (identifier)))
-                              (identifier))))
-                        (expression
-                          (primary_expression
-                            (member_access
-                              (expression
-                                (primary_expression
-                                  (identifier)))
-                              (identifier))))))))
+                    (parenthesized_expression
+                      (expression
+                        (binary_expression
+                          (expression
+                            (primary_expression
+                              (member_access
+                                (expression
+                                  (primary_expression
+                                    (identifier)))
+                                (identifier))))
+                          (expression
+                            (primary_expression
+                              (member_access
+                                (expression
+                                  (primary_expression
+                                    (identifier)))
+                                (identifier)))))))))
                 (expression
                   (primary_expression
-                    (expression
-                      (binary_expression
-                        (expression
-                          (primary_expression
-                            (literal
-                              (number))))
-                        (expression
-                          (primary_expression
-                            (member_access
-                              (expression
-                                (primary_expression
-                                  (identifier)))
-                              (identifier))))))))))
+                    (parenthesized_expression
+                      (expression
+                        (binary_expression
+                          (expression
+                            (primary_expression
+                              (literal
+                                (number))))
+                          (expression
+                            (primary_expression
+                              (member_access
+                                (expression
+                                  (primary_expression
+                                    (identifier)))
+                                (identifier)))))))))))
             (identifier)))))))
 
 ==================

@@ -22,3 +22,6 @@
 (bulk_alter_block "]" @end) @indent
 (schema_definition "]" @end) @indent
 (list_literal "]" @end) @indent
+(function_call ")" @end) @indent
+(subquery_expression ")" @end) @indent
+(parenthesized_expression ")" @end) @indent ; If you add this to your grammar

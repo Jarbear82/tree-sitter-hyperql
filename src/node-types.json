@@ -2128,6 +2128,21 @@
     }
   },
   {
+    "type": "parenthesized_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "partition_by_clause",
     "named": true,
     "fields": {},
@@ -2273,10 +2288,6 @@
           "named": true
         },
         {
-          "type": "expression",
-          "named": true
-        },
-        {
           "type": "function_call",
           "named": true
         },
@@ -2306,6 +2317,10 @@
         },
         {
           "type": "parameter_ref",
+          "named": true
+        },
+        {
+          "type": "parenthesized_expression",
           "named": true
         },
         {
