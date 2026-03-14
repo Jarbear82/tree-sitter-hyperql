@@ -3850,7 +3850,8 @@ DEFINE FIELD email: String @pattern("^[^@]+@[^@]+\\.[^@]+$");
               (expression
                 (primary_expression
                   (literal
-                    (string)))))))))))
+                    (string
+                      (escape_sequence))))))))))))
 
 ==================
 Field Singular Precision Decorator
@@ -6885,7 +6886,8 @@ RETURN p;
               (expression
                 (primary_expression
                   (literal
-                    (string))))))))
+                    (string
+                      (escape_sequence)))))))))
       (query_clause
         (return_clause
           (return_entry

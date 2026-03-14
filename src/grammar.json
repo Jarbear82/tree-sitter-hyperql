@@ -55,6 +55,10 @@
             {
               "type": "SYMBOL",
               "name": "analyze_statement"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "escape_sequence"
             }
           ]
         },
@@ -10593,8 +10597,33 @@
       ]
     },
     "string": {
-      "type": "PATTERN",
-      "value": "\"([^\"\\\\]|\\\\.)*\""
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "\""
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_string_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "escape_sequence"
+              }
+            ]
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "\""
+        }
+      ]
     },
     "number": {
       "type": "PATTERN",
@@ -10612,6 +10641,14 @@
           "value": "false"
         }
       ]
+    },
+    "_string_content": {
+      "type": "PATTERN",
+      "value": "[^\"\\\\]+"
+    },
+    "escape_sequence": {
+      "type": "PATTERN",
+      "value": "\\\\."
     },
     "comment": {
       "type": "TOKEN",

@@ -76,6 +76,7 @@ module.exports = grammar({
           $.execute_statement,
           $.explain_statement, // v0.20: promoted to top-level (avoids EX- prefix conflict with EXECUTE)
           $.analyze_statement, // v0.20: promoted to top-level
+          $.escape_sequence,
         ),
         ";",
       ),
@@ -1274,9 +1275,13 @@ module.exports = grammar({
 
     literal: ($) => choice($.string, $.number, $.boolean, "null"),
 
-    string: ($) => /"([^"\\]|\\.)*"/,
+    string: ($) =>
+      seq('"', repeat(choice($._string_content, $.escape_sequence)), '"'),
     number: ($) => /-?\d+(\.\d+)?d?/,
     boolean: ($) => choice("true", "false"),
+
+    _string_content: ($) => /[^"\\]+/,
+    escape_sequence: ($) => /\\./,
 
     // v0.20: block comments /* */ are the ONLY supported comment form.
     // Line comments (//) are not supported. An unterminated /* is [1001].

@@ -2755,6 +2755,10 @@
           "named": true
         },
         {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
           "type": "execute_statement",
           "named": true
         },
@@ -2784,6 +2788,21 @@
         },
         {
           "type": "transaction_statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "string",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
           "named": true
         }
       ]
@@ -3169,6 +3188,10 @@
   },
   {
     "type": "!=",
+    "named": false
+  },
+  {
+    "type": "\"",
     "named": false
   },
   {
@@ -3897,6 +3920,10 @@
     "named": false
   },
   {
+    "type": "escape_sequence",
+    "named": true
+  },
+  {
     "type": "false",
     "named": false
   },
@@ -3914,10 +3941,6 @@
   },
   {
     "type": "star_arg",
-    "named": true
-  },
-  {
-    "type": "string",
     "named": true
   },
   {
