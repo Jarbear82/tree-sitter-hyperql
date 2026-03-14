@@ -127,6 +127,10 @@
           "named": true
         },
         {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
           "type": "expression",
           "named": true
         },
@@ -154,7 +158,7 @@
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "dotted_identifier",
           "named": true
         }
       ]
@@ -214,63 +218,6 @@
     }
   },
   {
-    "type": "alter_role_entry",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "alter_role_ops",
-          "named": true
-        },
-        {
-          "type": "identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "alter_role_op",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "expression",
-          "named": true
-        },
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "role_constraint_block",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "alter_role_ops",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "alter_role_op",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "alter_schema_entry",
     "named": true,
     "fields": {},
@@ -302,10 +249,6 @@
           "named": true
         },
         {
-          "type": "alter_role_entry",
-          "named": true
-        },
-        {
           "type": "alter_schema_entry",
           "named": true
         },
@@ -323,6 +266,25 @@
         },
         {
           "type": "string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "analyze_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "query_clause",
           "named": true
         }
       ]
@@ -404,11 +366,7 @@
           "named": true
         },
         {
-          "type": "alter_role_entry",
-          "named": true
-        },
-        {
-          "type": "identifier",
+          "type": "dotted_identifier",
           "named": true
         }
       ]
@@ -491,21 +449,6 @@
     }
   },
   {
-    "type": "constraint_array",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "constraint_object",
     "named": true,
     "fields": {},
@@ -536,10 +479,6 @@
       "multiple": false,
       "required": true,
       "types": [
-        {
-          "type": "constraint_array",
-          "named": true
-        },
         {
           "type": "constraint_object",
           "named": true
@@ -584,11 +523,11 @@
       "required": true,
       "types": [
         {
-          "type": "expression",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "expression",
           "named": true
         }
       ]
@@ -656,6 +595,10 @@
           "named": true
         },
         {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
           "type": "identifier",
           "named": true
         }
@@ -714,6 +657,10 @@
       "types": [
         {
           "type": "create_body_block",
+          "named": true
+        },
+        {
+          "type": "dotted_identifier",
           "named": true
         },
         {
@@ -791,10 +738,6 @@
           "named": true
         },
         {
-          "type": "role_definition",
-          "named": true
-        },
-        {
           "type": "schema_definition",
           "named": true
         },
@@ -804,6 +747,14 @@
         },
         {
           "type": "trait_definition",
+          "named": true
+        },
+        {
+          "type": "union_definition",
+          "named": true
+        },
+        {
+          "type": "view_definition",
           "named": true
         }
       ]
@@ -818,6 +769,10 @@
       "required": true,
       "types": [
         {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
           "type": "edge_batch",
           "named": true
         },
@@ -831,6 +786,10 @@
         },
         {
           "type": "enum_entry_full",
+          "named": true
+        },
+        {
+          "type": "extends_clause",
           "named": true
         },
         {
@@ -854,6 +813,10 @@
           "named": true
         },
         {
+          "type": "metadata_block",
+          "named": true
+        },
+        {
           "type": "namespace_body",
           "named": true
         },
@@ -866,11 +829,15 @@
           "named": true
         },
         {
-          "type": "role_batch",
+          "type": "query_clause",
           "named": true
         },
         {
-          "type": "role_entry_full",
+          "type": "union_variant",
+          "named": true
+        },
+        {
+          "type": "view_parameter",
           "named": true
         }
       ]
@@ -945,9 +912,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
-      "required": false,
+      "multiple": false,
+      "required": true,
       "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
         {
           "type": "identifier",
           "named": true
@@ -1032,15 +1003,15 @@
       "required": true,
       "types": [
         {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
           "type": "edge_body",
           "named": true
         },
         {
           "type": "extends_clause",
-          "named": true
-        },
-        {
-          "type": "identifier",
           "named": true
         },
         {
@@ -1074,7 +1045,7 @@
       "required": false,
       "types": [
         {
-          "type": "identifier",
+          "type": "dotted_identifier",
           "named": true
         },
         {
@@ -1112,11 +1083,11 @@
       "required": true,
       "types": [
         {
-          "type": "enum_body",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "enum_body",
           "named": true
         },
         {
@@ -1161,6 +1132,33 @@
     }
   },
   {
+    "type": "explain_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "query_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "expression",
     "named": true,
     "fields": {},
@@ -1196,7 +1194,7 @@
       "required": true,
       "types": [
         {
-          "type": "identifier",
+          "type": "dotted_identifier",
           "named": true
         }
       ]
@@ -1249,11 +1247,11 @@
           "named": true
         },
         {
-          "type": "expression",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "expression",
           "named": true
         },
         {
@@ -1325,11 +1323,11 @@
       "required": true,
       "types": [
         {
-          "type": "expression",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "expression",
           "named": true
         },
         {
@@ -1518,6 +1516,25 @@
     }
   },
   {
+    "type": "inline_allows_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "role_body_constraint_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "introspection_statement",
     "named": true,
     "fields": {},
@@ -1614,6 +1631,25 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "match_from_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "identifier",
           "named": true
         }
       ]
@@ -1804,10 +1840,6 @@
           "named": true
         },
         {
-          "type": "role_entry",
-          "named": true
-        },
-        {
           "type": "set_statement",
           "named": true
         }
@@ -1906,7 +1938,7 @@
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "dotted_identifier",
           "named": true
         },
         {
@@ -1967,11 +1999,11 @@
       "required": true,
       "types": [
         {
-          "type": "extends_clause",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "extends_clause",
           "named": true
         },
         {
@@ -1994,11 +2026,11 @@
       "required": true,
       "types": [
         {
-          "type": "expression",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "expression",
           "named": true
         }
       ]
@@ -2115,6 +2147,10 @@
       "required": true,
       "types": [
         {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
           "type": "identifier",
           "named": true
         }
@@ -2129,6 +2165,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
         {
           "type": "identifier",
           "named": true
@@ -2172,11 +2212,11 @@
       "required": true,
       "types": [
         {
-          "type": "expression",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "expression",
           "named": true
         }
       ]
@@ -2191,7 +2231,7 @@
       "required": true,
       "types": [
         {
-          "type": "identifier",
+          "type": "dotted_identifier",
           "named": true
         }
       ]
@@ -2304,6 +2344,10 @@
           "named": true
         },
         {
+          "type": "match_from_clause",
+          "named": true
+        },
+        {
           "type": "return_clause",
           "named": true
         },
@@ -2407,56 +2451,7 @@
     }
   },
   {
-    "type": "role_allows_list",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "role_constraint_block",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "role_batch",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "role_entry_full",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "role_constraint_block",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "role_definition",
+    "type": "role_body_constraint_block",
     "named": true,
     "fields": {},
     "children": {
@@ -2464,11 +2459,7 @@
       "required": true,
       "types": [
         {
-          "type": "role_batch",
-          "named": true
-        },
-        {
-          "type": "role_entry_full",
+          "type": "constraint_object",
           "named": true
         }
       ]
@@ -2487,26 +2478,11 @@
           "named": true
         },
         {
-          "type": "identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "role_entry_full",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "role_allows_list",
+          "type": "inline_allows_clause",
           "named": true
         }
       ]
@@ -2660,7 +2636,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "expression",
@@ -2771,11 +2747,19 @@
       "required": true,
       "types": [
         {
+          "type": "analyze_statement",
+          "named": true
+        },
+        {
           "type": "definition_statement",
           "named": true
         },
         {
           "type": "execute_statement",
+          "named": true
+        },
+        {
+          "type": "explain_statement",
           "named": true
         },
         {
@@ -2814,6 +2798,10 @@
       "required": true,
       "types": [
         {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
           "type": "identifier",
           "named": true
         }
@@ -2840,6 +2828,21 @@
     }
   },
   {
+    "type": "trait_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "trait_definition",
     "named": true,
     "fields": {},
@@ -2848,7 +2851,19 @@
       "required": true,
       "types": [
         {
-          "type": "identifier",
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "extends_clause",
+          "named": true
+        },
+        {
+          "type": "metadata_block",
+          "named": true
+        },
+        {
+          "type": "trait_body",
           "named": true
         }
       ]
@@ -2878,7 +2893,11 @@
       "required": true,
       "types": [
         {
-          "type": "identifier",
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "number",
           "named": true
         },
         {
@@ -2909,6 +2928,44 @@
     "fields": {}
   },
   {
+    "type": "union_definition",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "union_variant",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "union_variant",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "var_decl",
     "named": true,
     "fields": {},
@@ -2920,6 +2977,48 @@
           "type": "expression",
           "named": true
         },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "type",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "view_definition",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
+          "type": "query_clause",
+          "named": true
+        },
+        {
+          "type": "view_parameter",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "view_parameter",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
         {
           "type": "identifier",
           "named": true
@@ -2974,11 +3073,11 @@
       "required": true,
       "types": [
         {
-          "type": "expression",
+          "type": "dotted_identifier",
           "named": true
         },
         {
-          "type": "identifier",
+          "type": "expression",
           "named": true
         },
         {
@@ -3049,6 +3148,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "dotted_identifier",
+          "named": true
+        },
         {
           "type": "expression",
           "named": true
@@ -3221,6 +3324,10 @@
     "named": false
   },
   {
+    "type": "ANALYZE",
+    "named": false
+  },
+  {
     "type": "AND",
     "named": false
   },
@@ -3285,7 +3392,7 @@
     "named": false
   },
   {
-    "type": "CURRENT ROW",
+    "type": "CURRENT",
     "named": false
   },
   {
@@ -3365,11 +3472,19 @@
     "named": false
   },
   {
+    "type": "EXPLAIN",
+    "named": false
+  },
+  {
     "type": "EXTENDS",
     "named": false
   },
   {
     "type": "FIELD",
+    "named": false
+  },
+  {
+    "type": "FIELDS",
     "named": false
   },
   {
@@ -3402,6 +3517,10 @@
   },
   {
     "type": "FUNCTION",
+    "named": false
+  },
+  {
+    "type": "FUNCTIONS",
     "named": false
   },
   {
@@ -3450,6 +3569,10 @@
   },
   {
     "type": "ISOLATION",
+    "named": false
+  },
+  {
+    "type": "JSON",
     "named": false
   },
   {
@@ -3537,6 +3660,10 @@
     "named": false
   },
   {
+    "type": "OR",
+    "named": false
+  },
+  {
     "type": "ORDER",
     "named": false
   },
@@ -3561,10 +3688,6 @@
     "named": false
   },
   {
-    "type": "PERSISTENT",
-    "named": false
-  },
-  {
     "type": "POLICIES",
     "named": false
   },
@@ -3586,6 +3709,10 @@
   },
   {
     "type": "RANGE",
+    "named": false
+  },
+  {
+    "type": "REBUILD",
     "named": false
   },
   {
@@ -3614,6 +3741,10 @@
   },
   {
     "type": "ROLLBACK",
+    "named": false
+  },
+  {
+    "type": "ROW",
     "named": false
   },
   {
@@ -3669,7 +3800,15 @@
     "named": false
   },
   {
+    "type": "TRAITS",
+    "named": false
+  },
+  {
     "type": "TYPE",
+    "named": false
+  },
+  {
+    "type": "TYPES",
     "named": false
   },
   {
@@ -3709,7 +3848,15 @@
     "named": false
   },
   {
+    "type": "VERBOSE",
+    "named": false
+  },
+  {
     "type": "VIEW",
+    "named": false
+  },
+  {
+    "type": "VIEWS",
     "named": false
   },
   {

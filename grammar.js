@@ -4,6 +4,16 @@ module.exports = grammar({
   extras: ($) => [/\s/, $.comment],
 
   word: ($) => $.identifier,
+  //
+  // Removing `word` is the primary fix for no-whitespace parsing. With `word`
+  // set, tree-sitter enforces hard word boundaries: keywords only match when
+  // NOT followed by an identifier character. This breaks e.g. `ALLOWSPerson`
+  // because the lexer sees the whole string as one identifier.
+  //
+  // Without `word`, the lexer is parser-state-directed: it only tries tokens
+  // that are valid in the current parse state. So when only `ALLOWS` is valid
+  // (not a bare identifier), it matches just `ALLOWS` and leaves `Person` for
+  // the next token.
 
   conflicts: ($) => [
     [$.with_clause],
@@ -19,7 +29,9 @@ module.exports = grammar({
     [$.node_body],
     [$.edge_body],
     [$.enum_definition],
-    [$.role_allows_list],
+    [$.inline_allows_clause],
+    [$.role_entry],
+    [$.role_body_constraint_block],
     [$.metadata_block],
     [$.namespace_block],
     [$.state_clause],
@@ -37,8 +49,15 @@ module.exports = grammar({
     [$.binary_expression, $.subquery_expression],
     [$.type],
     [$.pattern, $.primary_expression],
+    [$.with_entry, $.dotted_identifier],
     [$.with_entry, $.primary_expression],
     [$.with_entry, $.function_call],
+    [$.dotted_identifier],
+    [$.match_from_clause, $.pattern, $.primary_expression],
+    [$.definition_item],
+    [$.primary_expression, $.dotted_identifier],
+    [$.dotted_identifier, $.window_call],
+    [$.dotted_identifier, $.function_call],
   ],
 
   rules: {
@@ -55,14 +74,30 @@ module.exports = grammar({
           $.introspection_statement,
           $.prepare_statement,
           $.execute_statement,
+          $.explain_statement, // v0.20: promoted to top-level (avoids EX- prefix conflict with EXECUTE)
+          $.analyze_statement, // v0.20: promoted to top-level
         ),
         ";",
       ),
 
-    // --- Definitions (SDL) ---
+    // -------------------------------------------------------------------------
+    // Definitions (SDL)
+    // -------------------------------------------------------------------------
+
+    // v0.20: Replaced repeat(choice("DEFINE","ABSTRACT")) with an explicit
+    // sequence. IF NOT EXISTS guard added to all definition statements.
+    // ABSTRACT NODE removed; only ABSTRACT EDGE remains valid (enforced
+    // semantically, not syntactically).
+    // namespace_definition no longer carries its own DEFINE keyword — the
+    // outer seq("DEFINE", ...) here provides it.
     definition_statement: ($) =>
       choice(
-        seq(repeat(choice("DEFINE", "ABSTRACT")), $.definition_body),
+        seq(
+          "DEFINE",
+          optional(seq("IF", "NOT", "EXISTS")),
+          optional("ABSTRACT"),
+          $.definition_body,
+        ),
         $.mixed_definition_batch,
       ),
 
@@ -73,44 +108,87 @@ module.exports = grammar({
         $.enum_definition,
         $.struct_definition,
         $.trait_definition,
-        $.role_definition,
         $.node_definition,
         $.edge_definition,
         $.function_definition,
         $.aggregate_function_definition,
         $.index_definition,
         $.materialized_view_definition,
+        $.view_definition, // v0.20: new
+        $.union_definition, // v0.20: new
         $.access_role_definition,
         $.access_policy_definition,
         $.schema_definition,
       ),
 
+    // v0.20: supports IF NOT EXISTS at batch level
     mixed_definition_batch: ($) =>
-      seq("DEFINE", "[", commaSep($.definition_item), "]"),
+      seq(
+        "DEFINE",
+        optional(seq("IF", "NOT", "EXISTS")),
+        "[",
+        commaSep($.definition_item),
+        "]",
+      ),
 
     definition_item: ($) =>
       choice(
         seq("NAMESPACE", $.namespace_body),
         seq("FIELD", choice($.field_entry, $.field_batch)),
         seq("STRUCT", $.identifier, "{", commaSep($.identifier), "}"),
-        seq("TRAIT", $.identifier, "{", commaSep($.identifier), "}"),
-        seq(optional("ABSTRACT"), "NODE", choice($.node_entry_full, $.node_batch)),
-        seq(optional("ABSTRACT"), "EDGE", choice($.edge_entry_full, $.edge_batch)),
+        // v0.20: TRAIT in batch now supports extends and metadata
+        seq(
+          "TRAIT",
+          $.dotted_identifier,
+          optional($.extends_clause),
+          "{",
+          commaSep($.identifier),
+          "}",
+          optional($.metadata_block),
+        ),
+        // v0.20: ABSTRACT NODE removed; optional("ABSTRACT") retained only for
+        // EDGE batch entries
+        seq("NODE", choice($.node_entry_full, $.node_batch)),
+        seq(
+          optional("ABSTRACT"),
+          "EDGE",
+          choice($.edge_entry_full, $.edge_batch),
+        ),
         seq("ENUM", choice($.enum_entry_full, $.enum_batch)),
-        seq("ROLE", choice($.role_entry_full, $.role_batch)),
         seq("INDEX", choice($.index_entry_full, $.index_batch)),
+        // v0.20: VIEW and UNION in mixed batches
+        seq(
+          "VIEW",
+          $.dotted_identifier,
+          optional(seq("(", commaSep($.view_parameter), ")")),
+          "AS",
+          repeat1($.query_clause),
+        ),
+        seq("UNION", $.dotted_identifier, "{", commaSep1($.union_variant), "}"),
       ),
 
+    // v0.20: namespace_definition no longer wraps its own "DEFINE" keyword;
+    // the outer definition_statement supplies it.
     namespace_definition: ($) => seq("NAMESPACE", $.namespace_body),
     namespace_body: ($) =>
       seq($.dotted_identifier, optional($.namespace_block)),
     namespace_block: ($) =>
-      seq("[", repeat(seq($.contained_definition, optional(choice(";", ",")))), "]"),
+      seq(
+        "[",
+        repeat(seq($.contained_definition, optional(choice(";", ",")))),
+        "]",
+      ),
 
     contained_definition: ($) =>
       choice(
         $.definition_item,
-        seq("SCHEMA", $.identifier, "[", repeat(seq($.contained_definition, optional(choice(";", ",")))), "]"),
+        seq(
+          "SCHEMA",
+          $.identifier,
+          "[",
+          repeat(seq($.contained_definition, optional(choice(";", ",")))),
+          "]",
+        ),
       ),
 
     field_definition: ($) => seq("FIELD", choice($.field_entry, $.field_batch)),
@@ -124,23 +202,46 @@ module.exports = grammar({
       ),
     field_batch: ($) => seq("[", commaSep1($.field_entry), "]"),
 
-    enum_definition: ($) => seq("ENUM", choice($.enum_entry_full, $.enum_batch)),
+    enum_definition: ($) =>
+      seq("ENUM", choice($.enum_entry_full, $.enum_batch)),
     enum_entry_full: ($) =>
-      seq($.dotted_identifier, optional(seq("<", $.primitive_type, ">")), $.enum_body),
+      seq(
+        $.dotted_identifier,
+        optional(seq("<", $.primitive_type, ">")),
+        $.enum_body,
+      ),
     enum_body: ($) =>
-      seq("{", commaSep(seq($.dotted_identifier, optional(seq("=", $.literal)))), "}"),
+      seq(
+        "{",
+        commaSep(seq($.dotted_identifier, optional(seq("=", $.literal)))),
+        "}",
+      ),
     enum_batch: ($) => seq("[", commaSep1($.enum_entry_full), "]"),
 
     struct_definition: ($) =>
       seq("STRUCT", $.dotted_identifier, "{", commaSep($.identifier), "}"),
 
+    // v0.20: traits are first-class; EXTENDS and MetadataBlock now supported.
+    // trait_body is extracted into its own named rule so the parser can fully
+    // reduce it before attempting the optional metadata_block, resolving the
+    // shift/reduce conflict that occurred with the braces inline.
     trait_definition: ($) =>
-      seq("TRAIT", $.dotted_identifier, "{", commaSep($.identifier), "}"),
+      seq(
+        "TRAIT",
+        $.dotted_identifier,
+        optional($.extends_clause),
+        $.trait_body,
+        optional($.metadata_block),
+      ),
 
-    node_definition: ($) => seq("NODE", choice($.node_entry_full, $.node_batch)),
+    trait_body: ($) => seq("{", commaSep($.identifier), "}"),
+
+    node_definition: ($) =>
+      seq("NODE", choice($.node_entry_full, $.node_batch)),
+
+    // v0.20: ABSTRACT NODE removed — optional("ABSTRACT") is gone
     node_entry_full: ($) =>
       seq(
-        optional("ABSTRACT"),
         $.dotted_identifier,
         optional($.extends_clause),
         $.node_body,
@@ -148,7 +249,9 @@ module.exports = grammar({
       ),
     node_batch: ($) => seq("[", commaSep1($.node_entry_full), "]"),
 
-    edge_definition: ($) => seq("EDGE", choice($.edge_entry_full, $.edge_batch)),
+    edge_definition: ($) =>
+      seq("EDGE", choice($.edge_entry_full, $.edge_batch)),
+    // optional("ABSTRACT") retained for batch forms: DEFINE EDGE [ ABSTRACT Foo {...} ]
     edge_entry_full: ($) =>
       seq(
         optional("ABSTRACT"),
@@ -159,35 +262,52 @@ module.exports = grammar({
       ),
     edge_batch: ($) => seq("[", commaSep1($.edge_entry_full), "]"),
 
-    role_definition: ($) =>
-      seq("ROLE", choice($.role_entry_full, $.role_batch)),
-    role_entry_full: ($) => seq($.dotted_identifier, "ALLOWS", $.role_allows_list),
-    role_batch: ($) => seq("[", commaSep1($.role_entry_full), "]"),
-
-    role_allows_list: ($) =>
-      choice(
-        // Singular, no constraint
+    // v0.20: DEFINE ROLE removed; roles are fully localized within DEFINE EDGE.
+    // role_entry now carries an inline ALLOWS clause directly.
+    role_entry: ($) =>
+      seq(
         $.dotted_identifier,
-        // Singular, with constraint
-        seq($.dotted_identifier, ":", $.role_constraint_block),
-        // Batch, no constraint
-        seq("[", commaSep($.dotted_identifier), "]"),
-        // Batch, unified constraint
-        seq("[", commaSep1($.dotted_identifier), "]", ":", $.role_constraint_block),
-        // Batch, type-specific constraints
+        choice("<-", "->", "<->"),
+        $.cardinality,
+        optional(seq("ALLOWS", $.inline_allows_clause)),
+      ),
+
+    // v0.20: new rule — the ALLOWS clause for an inline role definition
+    inline_allows_clause: ($) =>
+      choice(
+        // Single type, no constraint
+        $.dotted_identifier,
+        // Single type with constraint block
+        seq($.dotted_identifier, $.role_body_constraint_block),
+        // Multiple types, no per-type constraints
+        seq("[", commaSep1($.dotted_identifier), "]"),
+        // Multiple types with unified constraint block
         seq(
           "[",
-          commaSep1(seq($.dotted_identifier, ":", $.role_constraint_block)),
+          commaSep1($.dotted_identifier),
+          "]",
+          $.role_body_constraint_block,
+        ),
+        // Multiple types with individual per-type constraints
+        seq(
+          "[",
+          commaSep1(seq($.dotted_identifier, $.role_body_constraint_block)),
           "]",
         ),
       ),
 
-    role_constraint_block: ($) => seq("{", commaSep($.expression), "}"),
+    // v0.20: new rule — named-only constraint block used inside role ALLOWS.
+    // @deferred is FORBIDDEN on this block per error [1060].
+    role_body_constraint_block: ($) =>
+      seq("{", "constraints", ":", $.constraint_object, "}"),
 
     extends_clause: ($) =>
       seq(
         "EXTENDS",
-        choice($.dotted_identifier, seq("[", commaSep1($.dotted_identifier), "]")),
+        choice(
+          $.dotted_identifier,
+          seq("[", commaSep1($.dotted_identifier), "]"),
+        ),
       ),
 
     node_body: ($) => seq("{", commaSep($.node_entry), "}"),
@@ -205,17 +325,15 @@ module.exports = grammar({
         optional($.query_block),
       ),
 
-    query_block: ($) => seq("{", repeat1($.query_clause), "}"),
+    query_block: ($) =>
+      seq("{", repeat1(seq($.query_clause, optional(";"))), "}"),
 
     edge_body: ($) => seq("{", commaSep($.edge_entry), "}"),
     edge_entry: ($) =>
       choice(
-        $.node_entry, // fields
-        $.role_entry,
+        $.node_entry, // field references
+        $.role_entry, // localized role declarations
       ),
-
-    role_entry: ($) =>
-      seq($.dotted_identifier, choice("<-", "->", "<->"), $.cardinality),
 
     cardinality: ($) =>
       seq(
@@ -228,10 +346,8 @@ module.exports = grammar({
       seq("{", commaSep(choice($.display_meta, $.constraints_meta)), "}"),
     display_meta: ($) => seq("display", ":", $.identifier),
 
-    constraints_meta: ($) =>
-      seq("constraints", ":", choice($.constraint_array, $.constraint_object)),
-
-    constraint_array: ($) => seq("[", commaSep($.expression), "]"),
+    // v0.20: anonymous constraint array form removed; named object form only
+    constraints_meta: ($) => seq("constraints", ":", $.constraint_object),
 
     constraint_object: ($) =>
       seq(
@@ -244,7 +360,7 @@ module.exports = grammar({
     function_definition: ($) =>
       seq(
         "FUNCTION",
-        $.decorator, // purity
+        $.decorator, // purity decorator: @pure | @readonly | @nondeterministic
         $.identifier,
         "(",
         commaSep($.parameter),
@@ -258,7 +374,7 @@ module.exports = grammar({
       seq(
         "AGGREGATE",
         "FUNCTION",
-        $.decorator, // purity
+        $.decorator,
         $.identifier,
         "(",
         commaSep($.parameter),
@@ -315,15 +431,43 @@ module.exports = grammar({
         "]",
       ),
 
-    schema_definition: ($) =>
-      seq("SCHEMA", $.identifier, "[", repeat(seq($.contained_definition, optional(choice(";", ",")))), "]"),
+    // v0.20: new — named, reusable query fragment; expanded inline at plan time
+    view_definition: ($) =>
+      seq(
+        "VIEW",
+        $.dotted_identifier,
+        optional(seq("(", commaSep($.view_parameter), ")")), // CHANGE: view_parameter
+        "AS",
+        repeat1($.query_clause),
+      ),
 
-    // --- Queries & Mutations (DML) ---
+    // v0.20: new — tagged union type for UDF return values
+    union_definition: ($) =>
+      seq("UNION", $.dotted_identifier, "{", commaSep1($.union_variant), "}"),
+
+    // v0.20: new — one variant arm of a union type
+    union_variant: ($) =>
+      seq($.identifier, "{", commaSep($.dotted_identifier), "}"),
+
+    schema_definition: ($) =>
+      seq(
+        "SCHEMA",
+        $.identifier,
+        "[",
+        repeat(seq($.contained_definition, optional(choice(";", ",")))),
+        "]",
+      ),
+
+    // -------------------------------------------------------------------------
+    // Queries & Mutations (DML)
+    // -------------------------------------------------------------------------
+
     query_statement: ($) => repeat1($.query_clause),
 
     query_clause: ($) =>
       choice(
         $.match_clause,
+        $.match_from_clause, // v0.20: MATCH (var) FROM ViewName
         $.where_clause,
         $.with_clause,
         $.return_clause,
@@ -338,6 +482,13 @@ module.exports = grammar({
         optional("CROSS_TYPE"),
       ),
 
+    // v0.20: MATCH (var) FROM ViewName — binds var to results of a named view.
+    // Separated from match_clause to avoid LR conflict: after MATCH (id), the
+    // parser needs one token of lookahead (FROM vs anything else) to decide.
+    match_from_clause: ($) =>
+      seq("MATCH", "(", $.identifier, ")", "FROM", $.dotted_identifier),
+
+    // v0.20: FROM variant removed from pattern (now handled by match_from_clause)
     pattern: ($) =>
       choice(
         seq(
@@ -352,7 +503,8 @@ module.exports = grammar({
 
     pattern_object: ($) =>
       seq("{", commaSep(choice($.pattern_prop, $.pattern_role)), "}"),
-    pattern_prop: ($) => seq($.dotted_identifier, choice(":", "="), $.expression),
+    pattern_prop: ($) =>
+      seq($.dotted_identifier, choice(":", "="), $.expression),
     pattern_role: ($) => seq($.dotted_identifier, "=>", $.dotted_identifier),
 
     path_pattern: ($) =>
@@ -388,7 +540,14 @@ module.exports = grammar({
     with_entry: ($) =>
       choice(
         seq($.expression, optional(seq("AS", $.identifier))),
-        seq($.identifier, "(", commaSep(choice($.identifier, seq($.identifier, ":", $.expression))), ")", "AS", $.identifier),
+        seq(
+          $.dotted_identifier,
+          "(",
+          commaSep(choice($.identifier, seq($.identifier, ":", $.expression))),
+          ")",
+          "AS",
+          $.identifier,
+        ),
       ),
 
     return_clause: ($) =>
@@ -426,6 +585,7 @@ module.exports = grammar({
 
     union_clause: ($) => seq("UNION", optional("ALL")),
 
+    // v0.20: removed standalone ADD ROLE mutation (use ALTER EDGE instead)
     mutation_statement: ($) =>
       choice(
         seq("CREATE", $.create_body),
@@ -438,7 +598,6 @@ module.exports = grammar({
         $.migrate_statement,
         seq("GRANT", "ACCESS", "ROLE", $.identifier, "TO", $.identifier),
         seq("REVOKE", "ACCESS", "ROLE", $.identifier, "FROM", $.identifier),
-        seq("ADD", "ROLE", choice($.role_entry, seq("[", commaSep1($.role_entry), "]"))),
       ),
 
     create_body: ($) => choice($.singular_create, $.same_type_create_batch),
@@ -471,8 +630,10 @@ module.exports = grammar({
         seq("EDGE", choice($.create_edge_entry, $.create_edge_batch)),
       ),
 
-    create_node_entry: ($) => seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
-    create_edge_entry: ($) => seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
+    create_node_entry: ($) =>
+      seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
+    create_edge_entry: ($) =>
+      seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
     create_node_batch: ($) => seq("[", commaSep1($.create_node_entry), "]"),
     create_edge_batch: ($) => seq("[", commaSep1($.create_edge_entry), "]"),
 
@@ -508,6 +669,7 @@ module.exports = grammar({
           $.set_isolation,
           seq("CONSTRAINT", "LIMIT", $.identifier, "=", $.expression),
           seq("UDF", "LIMIT", $.identifier, "=", $.expression),
+          seq("STRICT_PERMISSIONS", choice("ON", "OFF")),
         ),
       ),
     set_assignments: ($) => commaSep1($.set_assignment),
@@ -520,14 +682,14 @@ module.exports = grammar({
     delete_statement: ($) =>
       seq(optional("DETACH"), "DELETE", commaSep1($.identifier)),
 
-    // --- ALTER FIELD ops ---
-    alter_field_entry: ($) => seq($.identifier, $.alter_field_ops),
+    // -------------------------------------------------------------------------
+    // ALTER ops
+    // -------------------------------------------------------------------------
+
+    alter_field_entry: ($) => seq($.dotted_identifier, $.alter_field_ops),
 
     alter_field_ops: ($) =>
-      choice(
-        $.alter_field_op, // Level 1: single op
-        seq("[", commaSep($.alter_field_op), "]"), // Level 2: batch ops
-      ),
+      choice($.alter_field_op, seq("[", commaSep($.alter_field_op), "]")),
 
     alter_field_op: ($) =>
       choice(
@@ -538,49 +700,24 @@ module.exports = grammar({
         seq("DROP", "DEFAULT"),
       ),
 
-    // --- ALTER ROLE ops ---
-    alter_role_entry: ($) => seq($.identifier, $.alter_role_ops),
-
-    alter_role_ops: ($) =>
-      choice(
-        $.alter_role_op, // Level 1: single op
-        seq("[", commaSep($.alter_role_op), "]"), // Level 2: batch ops
-      ),
-
-    alter_role_op: ($) =>
-      choice(
-        seq("ADD", "ALLOWS", $.identifier, optional($.role_constraint_block)),
-        seq("DROP", "ALLOWS", $.identifier),
-        seq(
-          "ADD",
-          "CONSTRAINT",
-          optional(seq($.identifier, ":")),
-          $.expression,
-        ),
-        seq("DROP", "CONSTRAINT", $.identifier),
-      ),
-
     alter_statement: ($) =>
       seq(
         "ALTER",
         choice(
-          // NODE — levels 1 & 2
           seq(
             "NODE",
             choice(
-              seq($.identifier, $.alter_ops),
-              seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+              seq($.dotted_identifier, $.alter_ops),
+              seq("[", commaSep1(seq($.dotted_identifier, $.alter_ops)), "]"),
             ),
           ),
-          // EDGE — levels 1 & 2
           seq(
             "EDGE",
             choice(
-              seq($.identifier, $.alter_ops),
-              seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+              seq($.dotted_identifier, $.alter_ops),
+              seq("[", commaSep1(seq($.dotted_identifier, $.alter_ops)), "]"),
             ),
           ),
-          // FIELD — levels 1 & 2
           seq(
             "FIELD",
             choice(
@@ -588,17 +725,7 @@ module.exports = grammar({
               seq("[", commaSep1($.alter_field_entry), "]"),
             ),
           ),
-          // ROLE — levels 1 & 2
-          seq(
-            "ROLE",
-            choice(
-              $.alter_role_entry,
-              seq("[", commaSep1($.alter_role_entry), "]"),
-            ),
-          ),
-          // Level 4 bulk mixed
           $.bulk_alter_block,
-          // Non-type-hierarchy forms
           seq("SCHEMA", $.identifier, "[", repeat($.alter_schema_entry), "]"),
           seq(
             "USER",
@@ -620,10 +747,7 @@ module.exports = grammar({
       ),
 
     alter_ops: ($) =>
-      choice(
-        $.alter_entry, // Level 1: ALTER NODE Person ADD field
-        seq("[", commaSep($.alter_entry), "]"), // Level 2: ALTER NODE Person [ ADD x, DROP y ]
-      ),
+      choice($.alter_entry, seq("[", commaSep($.alter_entry), "]")),
 
     bulk_alter_block: ($) =>
       seq(
@@ -633,15 +757,15 @@ module.exports = grammar({
             seq(
               "NODE",
               choice(
-                seq($.identifier, $.alter_ops),
-                seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+                seq($.dotted_identifier, $.alter_ops),
+                seq("[", commaSep1(seq($.dotted_identifier, $.alter_ops)), "]"),
               ),
             ),
             seq(
               "EDGE",
               choice(
-                seq($.identifier, $.alter_ops),
-                seq("[", commaSep1(seq($.identifier, $.alter_ops)), "]"),
+                seq($.dotted_identifier, $.alter_ops),
+                seq("[", commaSep1(seq($.dotted_identifier, $.alter_ops)), "]"),
               ),
             ),
             seq(
@@ -651,13 +775,6 @@ module.exports = grammar({
                 seq("[", commaSep1($.alter_field_entry), "]"),
               ),
             ),
-            seq(
-              "ROLE",
-              choice(
-                $.alter_role_entry,
-                seq("[", commaSep1($.alter_role_entry), "]"),
-              ),
-            ),
           ),
         ),
         "]",
@@ -665,15 +782,10 @@ module.exports = grammar({
 
     alter_entry: ($) =>
       choice(
-        seq("ADD", $.identifier, repeat($.decorator)),
-        seq("DROP", $.identifier),
-        seq("RENAME", $.identifier, "TO", $.identifier),
-        seq(
-          "ADD",
-          "CONSTRAINT",
-          optional(seq($.identifier, ":")),
-          $.expression,
-        ),
+        seq("ADD", $.dotted_identifier, repeat($.decorator)),
+        seq("DROP", $.dotted_identifier),
+        seq("RENAME", $.dotted_identifier, "TO", $.dotted_identifier),
+        seq("ADD", "CONSTRAINT", $.identifier, ":", $.expression),
         seq("DROP", "CONSTRAINT", $.identifier),
         seq(
           "ADD",
@@ -686,6 +798,7 @@ module.exports = grammar({
           choice($.identifier, seq("[", commaSep1($.identifier), "]")),
         ),
       ),
+
     alter_schema_entry: ($) =>
       seq(
         choice("ADD", "DROP", "RENAME"),
@@ -693,19 +806,18 @@ module.exports = grammar({
         optional(seq("TO", $.identifier)),
       ),
 
+    // v0.20: removed top-level ROLE drop; added VIEW and MATERIALIZED VIEW drops
     drop_statement: ($) =>
       seq(
         "DROP",
         choice(
-          "USER",
-          "SCHEMA",
-          "NODE",
-          "EDGE",
-          "FIELD",
-          "PREPARE",
-          seq("ROLE", choice($.identifier, seq("[", commaSep1($.identifier), "]"))),
+          seq(
+            choice("USER", "SCHEMA", "NODE", "EDGE", "FIELD", "PREPARE"),
+            $.identifier,
+          ),
+          seq("VIEW", $.dotted_identifier),
+          seq("MATERIALIZED", "VIEW", $.dotted_identifier),
         ),
-        optional($.identifier),
       ),
 
     migrate_statement: ($) =>
@@ -729,7 +841,10 @@ module.exports = grammar({
         ),
       ),
 
-    // --- Transactions ---
+    // -------------------------------------------------------------------------
+    // Transactions
+    // -------------------------------------------------------------------------
+
     transaction_statement: ($) =>
       seq(
         choice("BEGIN", "COMMIT", "ROLLBACK"),
@@ -739,7 +854,10 @@ module.exports = grammar({
 
     set_isolation: ($) => seq("ISOLATION", "LEVEL", $.identifier),
 
-    // --- Imports ---
+    // -------------------------------------------------------------------------
+    // Imports
+    // -------------------------------------------------------------------------
+
     import_statement: ($) =>
       seq(
         "IMPORT",
@@ -756,7 +874,18 @@ module.exports = grammar({
         ),
       ),
 
-    // --- Introspection ---
+    // -------------------------------------------------------------------------
+    // Introspection
+    // v0.20: added SHOW NODE TYPES, SHOW EDGE TYPES, SHOW TRAITS/TRAIT,
+    // SHOW VIEWS/VIEW, SHOW FUNCTIONS/FUNCTION, SHOW FIELDS, SHOW SCHEMA,
+    // SHOW MATERIALIZED VIEWS; VALIDATE VIEW/CONSTRAINT/MATERIALIZED VIEW;
+    // REBUILD MATERIALIZED VIEW. EXPLAIN/ANALYZE promoted to top-level
+    // statement types to avoid the EX- prefix conflict with EXECUTE.
+    // TRAIT/VIEW/FUNCTION use optional($.dotted_identifier) instead of
+    // separate TRAITS/TRAIT alternatives to prevent the lexer from
+    // prefix-matching TRAIT inside TRAITS (which would leave S unparsed).
+    // -------------------------------------------------------------------------
+
     introspection_statement: ($) =>
       choice(
         seq(
@@ -775,19 +904,48 @@ module.exports = grammar({
             ),
             seq("PERMISSIONS", "FOR", $.identifier),
             seq("PREPARED", "STATEMENTS"),
+            seq("NODE", "TYPES"),
+            seq("EDGE", "TYPES"),
+
+            // THE FIX: Now that word boundaries work, we can safely use the
+            // plural keywords for listing all, and singular for specific targets.
+            choice("TRAITS", seq("TRAIT", $.dotted_identifier)),
+            choice("VIEWS", seq("VIEW", $.dotted_identifier)),
+            choice("FUNCTIONS", seq("FUNCTION", $.dotted_identifier)),
+
+            "FIELDS",
+            "SCHEMA",
+            seq("MATERIALIZED", "VIEWS"),
             seq(
-              choice("NAMESPACE", "SCHEMA", "FIELD", "NODE", "EDGE", "ROLE"),
+              choice("NAMESPACE", "SCHEMA", "FIELD", "NODE", "EDGE"),
               $.dotted_identifier,
             ),
             "USERS",
           ),
         ),
         seq("VALIDATE", "SCHEMA", $.identifier),
+        seq("VALIDATE", "VIEW", $.dotted_identifier),
+        seq("VALIDATE", "CONSTRAINT", $.dotted_identifier),
+        seq("VALIDATE", "MATERIALIZED", "VIEW", $.dotted_identifier),
+        seq("REBUILD", "MATERIALIZED", "VIEW", $.dotted_identifier),
       ),
 
-    // --- Security ---
+    // -------------------------------------------------------------------------
+    // Security
+    // -------------------------------------------------------------------------
+
+    // v0.20: optional STRICT_PERMISSIONS modifier on access role definitions
     access_role_definition: ($) =>
-      seq("ACCESS", "ROLE", $.identifier, "[", repeat($.access_entry), "]"),
+      seq(
+        "ACCESS",
+        "ROLE",
+        $.identifier,
+        optional("STRICT_PERMISSIONS"),
+        "[",
+        repeat($.access_entry),
+        "]",
+      ),
+
     access_entry: ($) =>
       seq(
         choice("GRANT", "DENY"),
@@ -817,19 +975,49 @@ module.exports = grammar({
         ")",
       ),
 
+    // v0.20: PERSISTENT removed — all prepared statements are session-scoped
     prepare_statement: ($) =>
-      seq(
-        "PREPARE",
-        optional("PERSISTENT"),
-        $.identifier,
-        "AS",
-        $.query_statement,
-      ),
+      seq("PREPARE", $.identifier, "AS", $.query_statement),
 
     execute_statement: ($) =>
       seq("EXECUTE", $.identifier, optional(seq("WITH", $.object_literal))),
 
-    // --- Expressions ---
+    // v0.20: EXPLAIN and ANALYZE promoted from introspection_statement to
+    // top-level statement types. This avoids the EX- prefix conflict where
+    // tree-sitter would partially match EXECUTE when it saw EXPLAIN, consuming
+    // E-X and then failing on P (third character of EXPLAIN vs EXECUTE).
+    explain_statement: ($) =>
+      choice(
+        seq(
+          "EXPLAIN",
+          optional(choice("VERBOSE", "JSON")),
+          repeat1($.query_clause),
+        ),
+        seq("EXPLAIN", "CONSTRAINT", $.dotted_identifier),
+        seq(
+          "EXPLAIN",
+          "FUNCTION",
+          $.identifier,
+          "(",
+          commaSep($.expression),
+          ")",
+        ),
+      ),
+
+    analyze_statement: ($) =>
+      choice(
+        seq(
+          "ANALYZE",
+          optional(choice("VERBOSE", "JSON")),
+          repeat1($.query_clause),
+        ),
+        seq("ANALYZE", "CONSTRAINT", $.dotted_identifier),
+      ),
+
+    // -------------------------------------------------------------------------
+    // Expressions
+    // -------------------------------------------------------------------------
+
     expression: ($) =>
       choice(
         $.conditional_expression,
@@ -842,7 +1030,9 @@ module.exports = grammar({
       choice(
         ...[
           ["||", 20],
+          ["OR", 20],
           ["&&", 30],
+          ["AND", 30],
           ["==", 40],
           ["!=", 40],
           ["<", 50],
@@ -869,7 +1059,7 @@ module.exports = grammar({
 
     unary_expression: ($) =>
       choice(
-        prec(80, seq(choice("!", "-", "~"), $.expression)),
+        prec(80, seq(choice("!", "-", "~", "NOT"), $.expression)),
         prec(10, seq($.expression, "IS", optional("NOT"), "NULL")),
       ),
 
@@ -895,7 +1085,7 @@ module.exports = grammar({
 
     window_call: ($) =>
       seq(
-        $.identifier,
+        $.dotted_identifier,
         "(",
         commaSep($.expression),
         ")",
@@ -929,7 +1119,7 @@ module.exports = grammar({
 
     frame_bound: ($) =>
       choice(
-        "CURRENT ROW",
+        seq("CURRENT", "ROW"),
         seq("UNBOUNDED", choice("PRECEDING", "FOLLOWING")),
         seq($.expression, choice("PRECEDING", "FOLLOWING")),
       ),
@@ -963,6 +1153,7 @@ module.exports = grammar({
         choice("EXISTS", seq($.expression, "IN")),
         "(",
         repeat1($.query_clause),
+        optional(";"),
         ")",
       ),
 
@@ -975,14 +1166,22 @@ module.exports = grammar({
     function_call: ($) =>
       prec(
         90,
-        seq($.identifier, "(", choice(alias("*", $.star_arg), commaSep($.expression)), ")"),
+        seq(
+          $.dotted_identifier, // Changed from $.identifier
+          "(",
+          choice(alias("*", $.star_arg), commaSep($.expression)),
+          ")",
+        ),
       ),
 
     parameter_ref: ($) => seq("$", $.identifier, optional(seq(":", $.type))),
 
     enum_shorthand: ($) => seq(".", $.identifier),
 
-    // --- Scripting / Blocks ---
+    // -------------------------------------------------------------------------
+    // Scripting / Blocks
+    // -------------------------------------------------------------------------
+
     block: ($) => seq("{", repeat($.script_statement), "}"),
     script_statement: ($) =>
       choice(
@@ -1032,14 +1231,22 @@ module.exports = grammar({
     break_stmt: ($) => seq("BREAK", ";"),
     continue_stmt: ($) => seq("CONTINUE", ";"),
 
-    // --- Basic Tokens ---
+    // -------------------------------------------------------------------------
+    // Basic Tokens
+    // -------------------------------------------------------------------------
+
     identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
     dotted_identifier: ($) => seq($.identifier, repeat(seq(".", $.identifier))),
 
     type: ($) =>
       seq(
         $.dotted_identifier,
-        optional(seq("<", commaSep1($.type), ">")),
+        optional(
+          choice(
+            seq("<", commaSep1($.type), ">"), // generic type params: Array<String>
+            seq("(", commaSep1($.number), ")"), // precision params: Decimal(15,8)
+          ),
+        ),
         optional("?"),
       ),
 
@@ -1055,9 +1262,13 @@ module.exports = grammar({
         "FLAGS",
       ),
 
+    // FIX (retained from v0.19): restrict continuation chars to [a-z0-9_] so
+    // the pattern stops at uppercase letters, preventing swallowing of keywords
+    // that follow a decorator (e.g. `@requiredDEFAULT` would be one token with
+    // the original pattern). Decorator names in HyperQL are all-lowercase.
     decorator: ($) =>
       seq(
-        /@[a-zA-Z_][a-zA-Z0-9_]*/,
+        /@[a-zA-Z_][a-z0-9_]*/,
         optional(seq("(", commaSep($.expression), ")")),
       ),
 
@@ -1067,9 +1278,12 @@ module.exports = grammar({
     number: ($) => /-?\d+(\.\d+)?d?/,
     boolean: ($) => choice("true", "false"),
 
-    comment: ($) => /--.*/,
+    // v0.20: block comments /* */ are the ONLY supported comment form.
+    // Line comments (//) are not supported. An unterminated /* is [1001].
+    comment: ($) => token(seq("/*", /[^*]*\*+([^/*][^*]*\*+)*/, "/")),
 
     parameter: ($) => seq($.identifier, ":", $.type),
+    view_parameter: ($) => seq("$", $.identifier, ":", $.type),
 
     object_literal: ($) =>
       seq(
