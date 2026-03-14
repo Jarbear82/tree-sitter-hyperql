@@ -27,6 +27,10 @@
       "required": true,
       "types": [
         {
+          "type": "dotted_identifier",
+          "named": true
+        },
+        {
           "type": "expression",
           "named": true
         },
@@ -2294,6 +2298,10 @@
         },
         {
           "type": "member_access",
+          "named": true
+        },
+        {
+          "type": "object_literal",
           "named": true
         },
         {

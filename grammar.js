@@ -943,7 +943,7 @@ module.exports = grammar({
         $.identifier,
         optional("STRICT_PERMISSIONS"),
         "[",
-        repeat($.access_entry),
+        commaSep1($.access_entry), // <-- CHANGED from repeat()
         "]",
       ),
 
@@ -965,11 +965,13 @@ module.exports = grammar({
         "POLICY",
         $.identifier,
         "ON",
-        $.identifier,
+        choice("NAMESPACE", "NODE", "EDGE", "FIELD"), // e.g., NODE
+        $.dotted_identifier, // e.g., Employee
         "FOR",
-        "ACCESS",
-        "ROLE",
-        $.identifier,
+        choice(
+          $.identifier, // e.g., READ
+          seq("[", commaSep1($.identifier), "]"), // e.g., [READ, WRITE]
+        ),
         "USING",
         "(",
         $.expression,
@@ -1071,6 +1073,7 @@ module.exports = grammar({
         $.member_access,
         $.index_access,
         $.list_literal,
+        $.object_literal,
         $.window_call,
         $.function_call,
         $.subquery_expression,

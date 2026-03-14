@@ -1515,6 +1515,64 @@ RETURN DISTINCT p.department;
                   (identifier))))))))))
 
 ==================
+Query Return Object Literal
+==================
+MATCH (p:Person)
+RETURN {
+    employee_name: p.name,
+    details: {
+        age: p.age,
+        department: p.department
+    }
+} AS payload;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (dotted_identifier
+              (identifier)))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (object_literal
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier))))
+                  (identifier)
+                  (expression
+                    (primary_expression
+                      (object_literal
+                        (identifier)
+                        (expression
+                          (primary_expression
+                            (member_access
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (identifier))))
+                        (identifier)
+                        (expression
+                          (primary_expression
+                            (member_access
+                              (expression
+                                (primary_expression
+                                  (identifier)))
+                              (identifier))))))))))
+            (identifier)))))))
+
+==================
 Query Group By
 ==================
 MATCH (p:Person)
@@ -6988,6 +7046,95 @@ RETURN p;
                 (identifier)))))))))
 
 ==================
+Expression Bitwise AND
+==================
+MATCH (u:User)
+WHERE u.permissions & Permission.ADMIN
+RETURN u;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (dotted_identifier
+              (identifier)))))
+      (query_clause
+        (where_clause
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (identifier)))
+                    (identifier))))))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (identifier)))))))))
+
+==================
+Expression Explicit Type Cast
+==================
+MATCH (p:Person)
+RETURN TO_STRING(p.age) AS age_str, TO_FLOAT(p.score) AS precise_score;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (dotted_identifier
+              (identifier)))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (dotted_identifier
+                    (identifier))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier))
+          (return_entry
+            (expression
+              (primary_expression
+                (function_call
+                  (dotted_identifier
+                    (identifier))
+                  (expression
+                    (primary_expression
+                      (member_access
+                        (expression
+                          (primary_expression
+                            (identifier)))
+                        (identifier)))))))
+            (identifier)))))))
+
+==================
 Expression Enum Shorthand
 ==================
 MATCH (p:Person)
@@ -7838,6 +7985,65 @@ IMPORT "external_lib" AS extLib;
     (import_statement
       (string)
       (identifier))))
+
+==================
+Define Access Role
+==================
+DEFINE ACCESS ROLE HRManager [
+    GRANT NAMESPACE Core.HR PERMISSIONS [READ, WRITE] CASCADE,
+    DENY NODE Salary PERMISSIONS [ALTER, DROP]
+];
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (access_role_definition
+          (identifier)
+          (access_entry
+            (dotted_identifier
+              (identifier)
+              (identifier))
+            (identifier)
+            (identifier))
+          (access_entry
+            (dotted_identifier
+              (identifier))
+            (identifier)
+            (identifier)))))))
+
+==================
+Define Access Policy
+==================
+DEFINE ACCESS POLICY RestrictEmployee ON NODE Employee
+FOR READ
+USING (this.department == $current_user.department);
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (access_policy_definition
+          (identifier)
+          (dotted_identifier
+            (identifier))
+          (identifier)
+          (expression
+            (binary_expression
+              (expression
+                (primary_expression
+                  (member_access
+                    (identifier))))
+              (expression
+                (primary_expression
+                  (member_access
+                    (expression
+                      (primary_expression
+                        (parameter_ref
+                          (identifier))))
+                    (identifier)))))))))))
 
 ==================
 Show Access Roles

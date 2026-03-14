@@ -1,7 +1,70 @@
-node_modules/
-build/
+# --- General ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.zip
+*.tar.gz
+*.tgz
+
+# --- Tree-sitter ---
+# Build artifacts
+/build/
+/bin/
+/obj/
+/target/
+/prebuilds/
 *.so
 *.dll
 *.dylib
-*.exe
-.DS_Store
+*.wasm
+*.o
+*.obj
+*.a
+*.lib
+
+# Generated C code (common build-only files in src/)
+/src/binding.cc
+/src/binding.gyp
+/src/Makefile
+
+# --- Node.js ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# --- Bindings ---
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+dist/
+*.egg-info/
+/wheel/
+
+# Rust
+/target/
+Cargo.lock
+
+# Swift
+/.build/
+/.swiftpm/
+Package.resolved
+
+# Zig
+zig-out/
+zig-cache/
+.zig-cache/
+
+# Go
+*.test
+*.prof
+
+# --- Examples ---
+/examples/*/
