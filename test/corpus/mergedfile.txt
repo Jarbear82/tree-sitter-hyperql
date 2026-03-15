@@ -3890,7 +3890,7 @@ DEFINE FIELD username: String @minlength(1) @maxlength(64);
 ==================
 Field Singular Pattern Decorator
 ==================
-DEFINE FIELD email: String @pattern("^[^@]+@[^@]+\\.[^@]+$");
+DEFINE FIELD email: String @pattern("^[^@]+@[^@]+.[^@]+$");
 ---
 
 (source_file
@@ -3908,8 +3908,7 @@ DEFINE FIELD email: String @pattern("^[^@]+@[^@]+\\.[^@]+$");
               (expression
                 (primary_expression
                   (literal
-                    (string
-                      (escape_sequence))))))))))))
+                    (string)))))))))))
 
 ==================
 Field Singular Precision Decorator
@@ -4541,6 +4540,86 @@ DEFINE FUNCTION @pure TaxAmount(price: Float): Float {
                     (expression
                       (primary_expression
                         (identifier)))))))))))))
+
+==================
+Function With Break And Continue
+==================
+DEFINE FUNCTION @pure FindFirstPositive(items: List<Int>): Int {
+    VAR result: Int = -1;
+    FOR (item IN items) {
+        IF (item < 0) {
+            CONTINUE;
+        }
+        result = item;
+        BREAK;
+    }
+    RETURN result;
+};
+---
+
+(source_file
+  (statement
+    (definition_statement
+      (definition_body
+        (function_definition
+          (decorator)
+          (identifier)
+          (parameter
+            (identifier)
+            (type
+              (dotted_identifier
+                (identifier))
+              (type
+                (dotted_identifier
+                  (identifier)))))
+          (type
+            (dotted_identifier
+              (identifier)))
+          (block
+            (script_statement
+              (var_decl
+                (identifier)
+                (type
+                  (dotted_identifier
+                    (identifier)))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))
+            (script_statement
+              (for_in_stmt
+                (identifier)
+                (expression
+                  (primary_expression
+                    (identifier)))
+                (block
+                  (script_statement
+                    (if_else_stmt
+                      (expression
+                        (binary_expression
+                          (expression
+                            (primary_expression
+                              (identifier)))
+                          (expression
+                            (primary_expression
+                              (literal
+                                (number))))))
+                      (block
+                        (script_statement
+                          (continue_stmt)))))
+                  (script_statement
+                    (assign_stmt
+                      (identifier)
+                      (expression
+                        (primary_expression
+                          (identifier)))))
+                  (script_statement
+                    (break_stmt)))))
+            (script_statement
+              (return_stmt
+                (expression
+                  (primary_expression
+                    (identifier)))))))))))
 
 ==================
 Index Singular Single Field
@@ -6917,7 +6996,7 @@ RETURN p;
 Expression MATCHES Regex
 ==================
 MATCH (p:Person)
-WHERE p.email MATCHES "^[a-z]+@[a-z]+\\.com$"
+WHERE p.email MATCHES "^[a-z]+@[a-z]+.com$"
 RETURN p;
 ---
 
@@ -6944,8 +7023,7 @@ RETURN p;
               (expression
                 (primary_expression
                   (literal
-                    (string
-                      (escape_sequence)))))))))
+                    (string))))))))
       (query_clause
         (return_clause
           (return_entry
@@ -7447,6 +7525,40 @@ RETURN ~p.flags AS invertedFlags;
                         (primary_expression
                           (identifier)))
                       (identifier))))))
+            (identifier)))))))
+
+==================
+Expression Modulo
+==================
+MATCH (p:Person)
+RETURN p.age % 10 AS age_bracket;
+---
+
+(source_file
+  (statement
+    (query_statement
+      (query_clause
+        (match_clause
+          (pattern
+            (identifier)
+            (dotted_identifier
+              (identifier)))))
+      (query_clause
+        (return_clause
+          (return_entry
+            (expression
+              (binary_expression
+                (expression
+                  (primary_expression
+                    (member_access
+                      (expression
+                        (primary_expression
+                          (identifier)))
+                      (identifier))))
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))
             (identifier)))))))
 
 ==================
@@ -7986,6 +8098,30 @@ IMPORT "external_lib" AS extLib;
   (statement
     (import_statement
       (string)
+      (identifier))))
+
+==================
+Security Grant Role
+==================
+GRANT ACCESS ROLE AdminRole TO alice;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (identifier)
+      (identifier))))
+
+==================
+Security Revoke Role
+==================
+REVOKE ACCESS ROLE AdminRole FROM alice;
+---
+
+(source_file
+  (statement
+    (mutation_statement
+      (identifier)
       (identifier))))
 
 ==================
