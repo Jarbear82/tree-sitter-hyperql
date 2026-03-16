@@ -1268,15 +1268,52 @@
   {
     "type": "definition_item",
     "named": true,
-    "fields": {},
+    "fields": {
+      "extends": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "extends_clause",
+            "named": true
+          }
+        ]
+      },
+      "fields": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "items": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "dotted_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
-        {
-          "type": "dotted_identifier",
-          "named": true
-        },
         {
           "type": "edge_batch",
           "named": true
@@ -1294,19 +1331,11 @@
           "named": true
         },
         {
-          "type": "extends_clause",
-          "named": true
-        },
-        {
           "type": "field_batch",
           "named": true
         },
         {
           "type": "field_entry",
-          "named": true
-        },
-        {
-          "type": "identifier",
           "named": true
         },
         {
@@ -4269,15 +4298,22 @@
   {
     "type": "union_definition",
     "named": true,
-    "fields": {},
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "dotted_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": true,
       "types": [
-        {
-          "type": "dotted_identifier",
-          "named": true
-        },
         {
           "type": "union_variant",
           "named": true

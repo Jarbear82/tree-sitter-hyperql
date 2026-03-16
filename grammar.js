@@ -136,14 +136,14 @@ module.exports = grammar({
       choice(
         seq("NAMESPACE", $.namespace_body),
         seq("FIELD", choice($.field_entry, $.field_batch)),
-        seq("STRUCT", $.identifier, "{", commaSep($.identifier), "}"),
+        seq("STRUCT", field("name", $.dotted_identifier), "{", commaSep(field("fields", $.identifier)), "}"),
         // v0.20: TRAIT in batch now supports extends and metadata
         seq(
           "TRAIT",
-          $.dotted_identifier,
-          optional($.extends_clause),
+          field("name", $.dotted_identifier),
+          field("extends", optional($.extends_clause)),
           "{",
-          commaSep($.identifier),
+          commaSep(field("items", $.identifier)),
           "}",
           optional($.metadata_block),
         ),
@@ -160,12 +160,12 @@ module.exports = grammar({
         // v0.20: VIEW and UNION in mixed batches
         seq(
           "VIEW",
-          $.dotted_identifier,
+          field("name", $.dotted_identifier),
           optional(seq("(", commaSep($.view_parameter), ")")),
           "AS",
           repeat1($.query_clause),
         ),
-        seq("UNION", $.dotted_identifier, "{", commaSep1($.union_variant), "}"),
+        seq("UNION", field("name", $.dotted_identifier), "{", commaSep1($.union_variant), "}"),
       ),
 
     // v0.20: namespace_definition no longer wraps its own "DEFINE" keyword;
@@ -444,7 +444,7 @@ module.exports = grammar({
 
     // v0.20: new — tagged union type for UDF return values
     union_definition: ($) =>
-      seq("UNION", $.dotted_identifier, "{", commaSep1($.union_variant), "}"),
+      seq("UNION", field("name", $.dotted_identifier), "{", commaSep1($.union_variant), "}"),
 
     // v0.20: new — one variant arm of a union type
     union_variant: ($) =>

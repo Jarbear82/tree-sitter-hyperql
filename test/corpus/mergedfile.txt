@@ -5032,7 +5032,8 @@ DEFINE [
               (literal
                 (number)))))
         (definition_item
-          (identifier)
+          (dotted_identifier
+            (identifier))
           (identifier)
           (identifier)
           (identifier))
