@@ -33,22 +33,22 @@
 (type (dotted_identifier) @type)
 
 ; Named type definitions
-(node_entry_full . (dotted_identifier (identifier) @type))
-(edge_entry_full . (dotted_identifier (identifier) @type))
-(struct_definition . (dotted_identifier (identifier) @type))
-(trait_definition  . (dotted_identifier (identifier) @type))
+(node_entry_full name: (dotted_identifier (identifier) @type))
+(edge_entry_full name: (dotted_identifier (identifier) @type))
+(struct_definition name: (dotted_identifier (identifier) @type))
+(trait_definition  name: (dotted_identifier (identifier) @type))
 
 ; Enum type names (e.g., Priority)
-(enum_entry_full . (dotted_identifier (identifier) @enum)) ; Using Zed's @enum
+(enum_entry_full name: (dotted_identifier (identifier) @enum)) ; Using Zed's @enum
 (enum_entry_full "<" @punctuation.bracket)
 (enum_entry_full (primitive_type) @type.builtin)
 (enum_entry_full ">" @punctuation.bracket)
 
 ; Enum members / variants (e.g., LOW, MEDIUM, HIGH)
-(enum_body (dotted_identifier (identifier) @variant))      ; Using Zed's @variant
+(enum_body variants: (dotted_identifier (identifier) @variant))      ; Using Zed's @variant
 
 ; Union variant names
-(union_variant (identifier) @type)
+(union_variant name: (identifier) @type)
 
 ; EXTENDS targets
 (extends_clause (dotted_identifier (identifier) @type))
@@ -61,31 +61,32 @@
 
 ; ── Functions ───────────────────────────────────────────────
 ; Function name in definition
-(function_definition           (identifier) @function)
-(aggregate_function_definition (identifier) @function)
+(function_definition           name: (identifier) @function)
+(aggregate_function_definition name: (identifier) @function)
 
 ; Call sites
-(function_call (dotted_identifier (identifier) @function))
-(function_call (dotted_identifier) @function)
-(window_call   (dotted_identifier (identifier) @function))
+(function_call name: (dotted_identifier (identifier) @function))
+(function_call name: (dotted_identifier) @function)
+(window_call   name: (dotted_identifier (identifier) @function))
 
 
 ; ── Parameters ──────────────────────────────────────────────
 (parameter      (identifier) @variable.parameter)
 (view_parameter "$" @punctuation.special (identifier) @variable.parameter)
-(parameter_ref  "$" @punctuation.special (identifier) @variable.parameter)
+(parameter_ref  name: (identifier) @variable.parameter)
 
 ; ── Properties & Shorthands ────────────────────────────────
 ; Fixes the orange shorthand properties: .gender, .age, .husband
 (enum_shorthand "." @punctuation.special
-                (identifier) @property)
+                identifier: (identifier) @property)
 
 
 ; ── Properties / field names ────────────────────────────────
 (node_storage_entry  (dotted_identifier (identifier) @property))
 (node_computed_entry (dotted_identifier (identifier) @property))
-(field_entry         (dotted_identifier (identifier) @property))
-(create_assignment   (dotted_identifier (identifier) @property))
+(field_entry         name: (dotted_identifier (identifier) @property))
+(create_property_assignment name: (dotted_identifier (identifier) @property))
+(create_role_assignment name: (dotted_identifier (identifier) @property))
 (set_assignment      (identifier) @property)
 (pattern_prop        (dotted_identifier (identifier) @property))
 
@@ -97,8 +98,8 @@
 (namespace_body (dotted_identifier (identifier) @variable.member))
 
 ; ── Scripting Variables ─────────────────────────────────────
-(const_decl (identifier) @constant)
-(var_decl (identifier) @variable)
+(const_decl name: (identifier) @constant)
+(var_decl name: (identifier) @variable)
 
 
 ; ── Special variables ────────────────────────────────────────
@@ -111,7 +112,7 @@
 ; ── Member / index access ────────────────────────────────────
 (member_access "."  @punctuation.delimiter)
 (member_access "?." @punctuation.delimiter)
-(member_access (identifier) @property)
+(member_access property: (identifier) @property)
 
 (index_access "[" @punctuation.bracket
               "]" @punctuation.bracket)

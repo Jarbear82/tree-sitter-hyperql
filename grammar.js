@@ -128,7 +128,7 @@ module.exports = grammar({
         "DEFINE",
         optional(seq("IF", "NOT", "EXISTS")),
         "[",
-        commaSep($.definition_item),
+        commaSep(field("items", $.definition_item)),
         "]",
       ),
 
@@ -195,32 +195,32 @@ module.exports = grammar({
     field_definition: ($) => seq("FIELD", choice($.field_entry, $.field_batch)),
     field_entry: ($) =>
       seq(
-        $.dotted_identifier,
+        field("name", $.dotted_identifier),
         ":",
-        $.type,
-        repeat($.decorator),
-        optional(seq("DEFAULT", $.expression)),
+        field("type", $.type),
+        field("decorators", repeat($.decorator)),
+        optional(seq("DEFAULT", field("default_value", $.expression))),
       ),
-    field_batch: ($) => seq("[", commaSep1($.field_entry), "]"),
+    field_batch: ($) => seq("[", commaSep1(field("items", $.field_entry)), "]"),
 
     enum_definition: ($) =>
       seq("ENUM", choice($.enum_entry_full, $.enum_batch)),
     enum_entry_full: ($) =>
       seq(
-        $.dotted_identifier,
-        optional(seq("<", $.primitive_type, ">")),
-        $.enum_body,
+        field("name", $.dotted_identifier),
+        optional(seq("<", field("underlying_type", $.primitive_type), ">")),
+        field("body", $.enum_body),
       ),
     enum_body: ($) =>
       seq(
         "{",
-        commaSep(seq($.dotted_identifier, optional(seq("=", $.literal)))),
+        commaSep(seq(field("variants", $.dotted_identifier), optional(seq("=", field("values", $.literal))))),
         "}",
       ),
-    enum_batch: ($) => seq("[", commaSep1($.enum_entry_full), "]"),
+    enum_batch: ($) => seq("[", commaSep1(field("items", $.enum_entry_full)), "]"),
 
     struct_definition: ($) =>
-      seq("STRUCT", $.dotted_identifier, "{", commaSep($.identifier), "}"),
+      seq("STRUCT", field("name", $.dotted_identifier), "{", commaSep(field("fields", $.identifier)), "}"),
 
     // v0.20: traits are first-class; EXTENDS and MetadataBlock now supported.
     // trait_body is extracted into its own named rule so the parser can fully
@@ -229,13 +229,13 @@ module.exports = grammar({
     trait_definition: ($) =>
       seq(
         "TRAIT",
-        $.dotted_identifier,
-        optional($.extends_clause),
-        $.trait_body,
-        optional($.metadata_block),
+        field("name", $.dotted_identifier),
+        field("extends", optional($.extends_clause)),
+        field("body", $.trait_body),
+        field("metadata", optional($.metadata_block)),
       ),
 
-    trait_body: ($) => seq("{", commaSep($.identifier), "}"),
+    trait_body: ($) => seq("{", commaSep(field("items", $.identifier)), "}"),
 
     node_definition: ($) =>
       seq("NODE", choice($.node_entry_full, $.node_batch)),
@@ -243,25 +243,25 @@ module.exports = grammar({
     // v0.20: ABSTRACT NODE removed — optional("ABSTRACT") is gone
     node_entry_full: ($) =>
       seq(
-        $.dotted_identifier,
-        optional($.extends_clause),
-        $.node_body,
-        optional($.metadata_block),
+        field("name", $.dotted_identifier),
+        field("extends", optional($.extends_clause)),
+        field("body", $.node_body),
+        field("metadata", optional($.metadata_block)),
       ),
-    node_batch: ($) => seq("[", commaSep1($.node_entry_full), "]"),
+    node_batch: ($) => seq("[", commaSep1(field("items", $.node_entry_full)), "]"),
 
     edge_definition: ($) =>
       seq("EDGE", choice($.edge_entry_full, $.edge_batch)),
     // optional("ABSTRACT") retained for batch forms: DEFINE EDGE [ ABSTRACT Foo {...} ]
     edge_entry_full: ($) =>
       seq(
-        optional("ABSTRACT"),
-        $.dotted_identifier,
-        optional($.extends_clause),
-        $.edge_body,
-        optional($.metadata_block),
+        field("abstract", optional("ABSTRACT")),
+        field("name", $.dotted_identifier),
+        field("extends", optional($.extends_clause)),
+        field("body", $.edge_body),
+        field("metadata", optional($.metadata_block)),
       ),
-    edge_batch: ($) => seq("[", commaSep1($.edge_entry_full), "]"),
+    edge_batch: ($) => seq("[", commaSep1(field("items", $.edge_entry_full)), "]"),
 
     // v0.20: DEFINE ROLE removed; roles are fully localized within DEFINE EDGE.
     // role_entry now carries an inline ALLOWS clause directly.
@@ -361,31 +361,31 @@ module.exports = grammar({
     function_definition: ($) =>
       seq(
         "FUNCTION",
-        $.decorator, // purity decorator: @pure | @readonly | @nondeterministic
-        $.identifier,
+        field("purity", $.decorator), // purity decorator: @pure | @readonly | @nondeterministic
+        field("name", $.identifier),
         "(",
-        commaSep($.parameter),
+        field("parameters", commaSep($.parameter)),
         ")",
         ":",
-        $.type,
-        $.block,
+        field("return_type", $.type),
+        field("body", $.block),
       ),
 
     aggregate_function_definition: ($) =>
       seq(
         "AGGREGATE",
         "FUNCTION",
-        $.decorator,
-        $.identifier,
+        field("purity", $.decorator),
+        field("name", $.identifier),
         "(",
-        commaSep($.parameter),
+        field("parameters", commaSep($.parameter)),
         ")",
         ":",
-        $.type,
+        field("return_type", $.type),
         "{",
-        $.state_clause,
-        $.accumulate_clause,
-        $.finalize_clause,
+        field("state", $.state_clause),
+        field("accumulate", $.accumulate_clause),
+        field("finalize", $.finalize_clause),
         "}",
       ),
 
@@ -393,7 +393,7 @@ module.exports = grammar({
       seq(
         "STATE",
         "[",
-        commaSep(seq($.identifier, ":", $.type, "=", $.expression)),
+        commaSep(field("items", seq($.identifier, ":", $.type, "=", $.expression))),
         "]",
         ";",
       ),
@@ -401,34 +401,34 @@ module.exports = grammar({
       seq(
         "ACCUMULATE",
         "[",
-        commaSep(seq($.identifier, "=", $.expression)),
+        commaSep(field("items", seq($.identifier, "=", $.expression))),
         "]",
         ";",
       ),
-    finalize_clause: ($) => seq("FINALIZE", $.expression, ";"),
+    finalize_clause: ($) => seq("FINALIZE", field("expression", $.expression), ";"),
 
     index_definition: ($) =>
       seq("INDEX", choice($.index_entry_full, $.index_batch)),
     index_entry_full: ($) =>
-      seq($.identifier, "ON", $.identifier, "(", commaSep1($.identifier), ")"),
-    index_batch: ($) => seq("[", commaSep1($.index_entry_full), "]"),
+      seq(field("name", $.identifier), "ON", field("table", $.identifier), "(", commaSep1(field("columns", $.identifier)), ")"),
+    index_batch: ($) => seq("[", commaSep1(field("items", $.index_entry_full)), "]"),
 
     materialized_view_definition: ($) =>
       seq(
         "MATERIALIZED",
         "VIEW",
-        $.identifier,
+        field("name", $.identifier),
         "FOR",
         "[",
-        commaSep1($.identifier),
+        commaSep1(field("for_types", $.identifier)),
         "]",
         "ON",
         "[",
-        commaSep1($.identifier),
+        commaSep1(field("on_fields", $.identifier)),
         "]",
         "INDEX",
         "[",
-        commaSep1($.identifier),
+        commaSep1(field("index_fields", $.identifier)),
         "]",
       ),
 
@@ -436,10 +436,10 @@ module.exports = grammar({
     view_definition: ($) =>
       seq(
         "VIEW",
-        $.dotted_identifier,
-        optional(seq("(", commaSep($.view_parameter), ")")), // CHANGE: view_parameter
+        field("name", $.dotted_identifier),
+        optional(seq("(", commaSep(field("parameters", $.view_parameter)), ")")), // CHANGE: view_parameter
         "AS",
-        repeat1($.query_clause),
+        field("body", repeat1($.query_clause)),
       ),
 
     // v0.20: new — tagged union type for UDF return values
@@ -448,14 +448,14 @@ module.exports = grammar({
 
     // v0.20: new — one variant arm of a union type
     union_variant: ($) =>
-      seq($.identifier, "{", commaSep($.dotted_identifier), "}"),
+      seq(field("name", $.identifier), "{", commaSep(field("types", $.dotted_identifier)), "}"),
 
     schema_definition: ($) =>
       seq(
         "SCHEMA",
-        $.identifier,
+        field("name", $.identifier),
         "[",
-        repeat(seq($.contained_definition, optional(choice(";", ",")))),
+        repeat(seq(field("items", $.contained_definition), optional(choice(";", ",")))),
         "]",
       ),
 
@@ -619,11 +619,11 @@ module.exports = grammar({
 
     same_type_create_batch: ($) =>
       choice(
-        seq("NODE", $.create_node_batch),
-        seq("EDGE", $.create_edge_batch),
+        seq("NODE", field("items", $.create_node_batch)),
+        seq("EDGE", field("items", $.create_edge_batch)),
       ),
 
-    mixed_create_batch: ($) => seq("CREATE", "[", commaSep($.create_item), "]"),
+    mixed_create_batch: ($) => seq("CREATE", "[", commaSep(field("items", $.create_item)), "]"),
 
     create_item: ($) =>
       choice(
@@ -632,18 +632,21 @@ module.exports = grammar({
       ),
 
     create_node_entry: ($) =>
-      seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
+      seq(field("alias", $.identifier), ":", field("type", $.dotted_identifier), field("body", $.create_body_block)),
     create_edge_entry: ($) =>
-      seq($.identifier, ":", $.dotted_identifier, $.create_body_block),
-    create_node_batch: ($) => seq("[", commaSep1($.create_node_entry), "]"),
-    create_edge_batch: ($) => seq("[", commaSep1($.create_edge_entry), "]"),
+      seq(field("alias", $.identifier), ":", field("type", $.dotted_identifier), field("body", $.create_body_block)),
+    create_node_batch: ($) => seq("[", commaSep1(field("items", $.create_node_entry)), "]"),
+    create_edge_batch: ($) => seq("[", commaSep1(field("items", $.create_edge_entry)), "]"),
 
-    create_body_block: ($) => seq("{", commaSep($.create_assignment), "}"),
+    create_body_block: ($) => seq("{", commaSep(field("assignments", $.create_assignment)), "}"),
     create_assignment: ($) =>
       choice(
-        seq($.dotted_identifier, "=", $.expression),
-        seq($.dotted_identifier, "=>", $.dotted_identifier),
+        $.create_property_assignment,
+        $.create_role_assignment,
       ),
+
+    create_property_assignment: ($) => seq(field("name", $.dotted_identifier), "=", field("value", $.expression)),
+    create_role_assignment: ($) => seq(field("name", $.dotted_identifier), "=>", field("target", $.dotted_identifier)),
 
     merge_statement: ($) =>
       choice(
@@ -694,12 +697,18 @@ module.exports = grammar({
 
     alter_field_op: ($) =>
       choice(
-        seq("SET", "TYPE", $.type),
-        seq("ADD", $.decorator),
-        seq("DROP", $.decorator),
-        seq("SET", "DEFAULT", $.expression),
-        seq("DROP", "DEFAULT"),
+        $.alter_field_set_type,
+        $.alter_field_add_decorator,
+        $.alter_field_drop_decorator,
+        $.alter_field_set_default,
+        $.alter_field_drop_default,
       ),
+
+    alter_field_set_type: ($) => seq("SET", "TYPE", field("type", $.type)),
+    alter_field_add_decorator: ($) => seq("ADD", field("decorator", $.decorator)),
+    alter_field_drop_decorator: ($) => seq("DROP", field("decorator", $.decorator)),
+    alter_field_set_default: ($) => seq("SET", "DEFAULT", field("value", $.expression)),
+    alter_field_drop_default: ($) => seq("DROP", "DEFAULT"),
 
     alter_statement: ($) =>
       seq(
@@ -825,20 +834,20 @@ module.exports = grammar({
       choice(
         seq(
           "MIGRATE",
-          $.identifier,
+          field("source", $.identifier),
           "TO",
-          $.identifier,
-          optional(seq("MAP", $.object_literal)),
-          optional(seq("DEFAULTS", $.object_literal)),
+          field("target", $.identifier),
+          optional(seq("MAP", field("map", $.object_literal))),
+          optional(seq("DEFAULTS", field("defaults", $.object_literal))),
         ),
         seq(
           "VALIDATE",
           "MIGRATION",
-          $.identifier,
+          field("source", $.identifier),
           "TO",
-          $.identifier,
-          optional(seq("MAP", $.object_literal)),
-          optional(seq("DEFAULTS", $.object_literal)),
+          field("target", $.identifier),
+          optional(seq("MAP", field("map", $.object_literal))),
+          optional(seq("DEFAULTS", field("defaults", $.object_literal))),
         ),
       ),
 
@@ -889,47 +898,63 @@ module.exports = grammar({
 
     introspection_statement: ($) =>
       choice(
-        seq(
-          "SHOW",
-          choice(
-            seq("ACCESS", "POLICIES", "ON", $.identifier),
-            seq("ACCESS", "ROLES"),
-            seq(
-              "EFFECTIVE",
-              "PERMISSIONS",
-              "FOR",
-              $.identifier,
-              "ON",
-              "NAMESPACE",
-              $.dotted_identifier,
-            ),
-            seq("PERMISSIONS", "FOR", $.identifier),
-            seq("PREPARED", "STATEMENTS"),
-            seq("NODE", "TYPES"),
-            seq("EDGE", "TYPES"),
-
-            // THE FIX: Now that word boundaries work, we can safely use the
-            // plural keywords for listing all, and singular for specific targets.
-            choice("TRAITS", seq("TRAIT", $.dotted_identifier)),
-            choice("VIEWS", seq("VIEW", $.dotted_identifier)),
-            choice("FUNCTIONS", seq("FUNCTION", $.dotted_identifier)),
-
-            "FIELDS",
-            "SCHEMA",
-            seq("MATERIALIZED", "VIEWS"),
-            seq(
-              choice("NAMESPACE", "SCHEMA", "FIELD", "NODE", "EDGE"),
-              $.dotted_identifier,
-            ),
-            "USERS",
-          ),
-        ),
-        seq("VALIDATE", "SCHEMA", $.identifier),
-        seq("VALIDATE", "VIEW", $.dotted_identifier),
-        seq("VALIDATE", "CONSTRAINT", $.dotted_identifier),
-        seq("VALIDATE", "MATERIALIZED", "VIEW", $.dotted_identifier),
-        seq("REBUILD", "MATERIALIZED", "VIEW", $.dotted_identifier),
+        $.show_access_policies,
+        $.show_access_roles,
+        $.show_effective_permissions,
+        $.show_permissions,
+        $.show_prepared_statements,
+        $.show_node_types,
+        $.show_edge_types,
+        $.show_traits,
+        $.show_views,
+        $.show_functions,
+        $.show_fields,
+        $.show_schema,
+        $.show_materialized_views,
+        $.show_entity,
+        $.show_users,
+        $.validate_schema,
+        $.validate_view,
+        $.validate_constraint,
+        $.validate_materialized_view,
+        $.rebuild_materialized_view,
       ),
+
+    show_access_policies: ($) => seq("SHOW", "ACCESS", "POLICIES", "ON", field("target", $.identifier)),
+    show_access_roles: ($) => seq("SHOW", "ACCESS", "ROLES"),
+    show_effective_permissions: ($) =>
+      seq(
+        "SHOW",
+        "EFFECTIVE",
+        "PERMISSIONS",
+        "FOR",
+        field("user", $.identifier),
+        "ON",
+        "NAMESPACE",
+        field("namespace", $.dotted_identifier),
+      ),
+    show_permissions: ($) => seq("SHOW", "PERMISSIONS", "FOR", field("user", $.identifier)),
+    show_prepared_statements: ($) => seq("SHOW", "PREPARED", "STATEMENTS"),
+    show_node_types: ($) => seq("SHOW", "NODE", "TYPES"),
+    show_edge_types: ($) => seq("SHOW", "EDGE", "TYPES"),
+    show_traits: ($) => seq("SHOW", choice("TRAITS", seq("TRAIT", field("name", $.dotted_identifier)))),
+    show_views: ($) => seq("SHOW", choice("VIEWS", seq("VIEW", field("name", $.dotted_identifier)))),
+    show_functions: ($) => seq("SHOW", choice("FUNCTIONS", seq("FUNCTION", field("name", $.dotted_identifier)))),
+    show_fields: ($) => seq("SHOW", "FIELDS"),
+    show_schema: ($) => seq("SHOW", "SCHEMA"),
+    show_materialized_views: ($) => seq("SHOW", "MATERIALIZED", "VIEWS"),
+    show_entity: ($) =>
+      seq(
+        "SHOW",
+        field("kind", choice("NAMESPACE", "SCHEMA", "FIELD", "NODE", "EDGE")),
+        field("name", $.dotted_identifier),
+      ),
+    show_users: ($) => seq("SHOW", "USERS"),
+    validate_schema: ($) => seq("VALIDATE", "SCHEMA", field("name", $.identifier)),
+    validate_view: ($) => seq("VALIDATE", "VIEW", field("name", $.dotted_identifier)),
+    validate_constraint: ($) => seq("VALIDATE", "CONSTRAINT", field("name", $.dotted_identifier)),
+    validate_materialized_view: ($) => seq("VALIDATE", "MATERIALIZED", "VIEW", field("name", $.dotted_identifier)),
+    rebuild_materialized_view: ($) => seq("REBUILD", "MATERIALIZED", "VIEW", field("name", $.dotted_identifier)),
 
     // -------------------------------------------------------------------------
     // Security
@@ -949,32 +974,32 @@ module.exports = grammar({
 
     access_entry: ($) =>
       seq(
-        choice("GRANT", "DENY"),
-        choice("NAMESPACE", "NODE", "EDGE", "FIELD"),
-        $.dotted_identifier,
+        field("kind", choice("GRANT", "DENY")),
+        field("target_type", choice("NAMESPACE", "NODE", "EDGE", "FIELD")),
+        field("target_name", $.dotted_identifier),
         "PERMISSIONS",
         "[",
-        commaSep($.identifier),
+        commaSep(field("permissions", $.identifier)),
         "]",
-        optional(choice("CASCADE", seq("NO", "CASCADE"))),
+        field("cascade", optional(choice("CASCADE", seq("NO", "CASCADE")))),
       ),
 
     access_policy_definition: ($) =>
       seq(
         "ACCESS",
         "POLICY",
-        $.identifier,
+        field("name", $.identifier),
         "ON",
-        choice("NAMESPACE", "NODE", "EDGE", "FIELD"), // e.g., NODE
-        $.dotted_identifier, // e.g., Employee
+        field("target_type", choice("NAMESPACE", "NODE", "EDGE", "FIELD")), // e.g., NODE
+        field("target_name", $.dotted_identifier), // e.g., Employee
         "FOR",
-        choice(
+        field("permissions", choice(
           $.identifier, // e.g., READ
           seq("[", commaSep1($.identifier), "]"), // e.g., [READ, WRITE]
-        ),
+        )),
         "USING",
         "(",
-        $.expression,
+        field("condition", $.expression),
         ")",
       ),
 
@@ -1056,14 +1081,14 @@ module.exports = grammar({
           ["MATCHES", 50],
           ["IMATCHES", 50],
         ].map(([operator, precedence]) =>
-          prec.left(precedence, seq($.expression, operator, $.expression)),
+          prec.left(precedence, seq(field("left", $.expression), field("operator", operator), field("right", $.expression))),
         ),
       ),
 
     unary_expression: ($) =>
       choice(
-        prec(80, seq(choice("!", "-", "~", "NOT"), $.expression)),
-        prec(10, seq($.expression, "IS", optional("NOT"), "NULL")),
+        prec(80, seq(field("operator", choice("!", "-", "~", "NOT")), field("operand", $.expression))),
+        prec(10, seq(field("operand", $.expression), field("operator", seq("IS", optional("NOT"), "NULL")))),
       ),
 
     primary_expression: ($) =>
@@ -1091,149 +1116,157 @@ module.exports = grammar({
 
     window_call: ($) =>
       seq(
-        $.dotted_identifier,
+        field("name", $.dotted_identifier),
         "(",
-        commaSep($.expression),
+        commaSep(field("arguments", $.expression)),
         ")",
         "OVER",
         "(",
-        optional($.window_spec),
+        field("spec", optional($.window_spec)),
         ")",
       ),
 
     window_spec: ($) =>
       choice(
         seq(
-          $.partition_by_clause,
-          optional($.order_by_clause),
-          optional($.window_frame),
+          field("partition_by", $.partition_by_clause),
+          field("order_by", optional($.order_by_clause)),
+          field("frame", optional($.window_frame)),
         ),
-        seq($.order_by_clause, optional($.window_frame)),
-        $.window_frame,
+        seq(field("order_by", $.order_by_clause), field("frame", optional($.window_frame))),
+        field("frame", $.window_frame),
       ),
 
-    partition_by_clause: ($) => seq("PARTITION", "BY", commaSep1($.expression)),
+    partition_by_clause: ($) => seq("PARTITION", "BY", commaSep1(field("expressions", $.expression))),
 
     window_frame: ($) =>
       seq(
-        choice("ROWS", "RANGE"),
+        field("unit", choice("ROWS", "RANGE")),
         choice(
-          seq("BETWEEN", $.frame_bound, "AND", $.frame_bound),
-          $.frame_bound,
+          seq("BETWEEN", field("start", $.frame_bound), "AND", field("end", $.frame_bound)),
+          field("start", $.frame_bound),
         ),
       ),
 
     frame_bound: ($) =>
       choice(
-        seq("CURRENT", "ROW"),
-        seq("UNBOUNDED", choice("PRECEDING", "FOLLOWING")),
-        seq($.expression, choice("PRECEDING", "FOLLOWING")),
+        $.frame_bound_current_row,
+        $.frame_bound_unbounded_preceding,
+        $.frame_bound_unbounded_following,
+        $.frame_bound_expr_preceding,
+        $.frame_bound_expr_following,
       ),
+
+    frame_bound_current_row: ($) => seq("CURRENT", "ROW"),
+    frame_bound_unbounded_preceding: ($) => seq("UNBOUNDED", "PRECEDING"),
+    frame_bound_unbounded_following: ($) => seq("UNBOUNDED", "FOLLOWING"),
+    frame_bound_expr_preceding: ($) => seq(field("expression", $.expression), "PRECEDING"),
+    frame_bound_expr_following: ($) => seq(field("expression", $.expression), "FOLLOWING"),
 
     conditional_expression: ($) =>
       choice($.if_expression, $.case_expression, $.match_expression),
 
     if_expression: ($) =>
-      seq("IF", $.expression, "THEN", $.expression, "ELSE", $.expression),
+      seq("IF", field("condition", $.expression), "THEN", field("consequence", $.expression), "ELSE", field("alternative", $.expression)),
 
     case_expression: ($) =>
       seq(
         "CASE",
-        optional($.expression),
-        repeat1(seq("WHEN", $.expression, "THEN", $.expression)),
-        optional(seq("ELSE", $.expression)),
+        field("value", optional($.expression)),
+        field("branches", repeat1(seq("WHEN", field("condition", $.expression), "THEN", field("result", $.expression)))),
+        field("default_result", optional(seq("ELSE", $.expression))),
         "END",
       ),
 
     match_expression: ($) =>
       seq(
         "MATCH",
-        $.expression,
+        field("expression", $.expression),
         "{",
-        commaSep1(seq($.expression, "=>", $.expression)),
+        field("branches", commaSep1(seq(field("pattern", $.expression), "=>", field("result", $.expression)))),
         "}",
       ),
 
     subquery_expression: ($) =>
       seq(
-        choice("EXISTS", seq($.expression, "IN")),
+        field("kind", choice("EXISTS", seq($.expression, "IN"))),
         "(",
-        repeat1($.query_clause),
+        field("query", repeat1($.query_clause)),
         optional(";"),
         ")",
       ),
 
     member_access: ($) =>
       choice(
-        prec.left(100, seq($.expression, choice(".", "?."), $.identifier)),
-        prec.left(100, seq("this", ".", $.identifier)),
+        prec.left(100, seq(field("object", $.expression), field("operator", choice(".", "?.")), field("property", $.identifier))),
+        prec.left(100, seq(field("object", "this"), field("operator", "."), field("property", $.identifier))),
       ),
 
     function_call: ($) =>
       prec(
         90,
         seq(
-          $.dotted_identifier, // Changed from $.identifier
+          field("name", $.dotted_identifier), // Changed from $.identifier
           "(",
-          choice(alias("*", $.star_arg), commaSep($.expression)),
+          choice(field("arguments", alias("*", $.star_arg)), commaSep(field("arguments", $.expression))),
           ")",
         ),
       ),
 
-    parameter_ref: ($) => seq("$", $.identifier, optional(seq(":", $.type))),
+    parameter_ref: ($) => seq("$", field("name", $.identifier), optional(seq(":", field("type", $.type)))),
 
-    enum_shorthand: ($) => seq(".", $.identifier),
+    enum_shorthand: ($) => seq(".", field("identifier", $.identifier)),
 
     // -------------------------------------------------------------------------
     // Scripting / Blocks
     // -------------------------------------------------------------------------
 
-    block: ($) => seq("{", repeat($.script_statement), "}"),
+    block: ($) => seq("{", field("statements", repeat($.script_statement)), "}"),
     script_statement: ($) =>
       choice(
-        $.var_decl,
-        $.const_decl,
-        $.while_stmt,
-        $.for_in_stmt,
-        $.if_else_stmt,
-        $.return_stmt,
-        $.assign_stmt,
-        $.break_stmt,
-        $.continue_stmt,
-        seq($.expression, ";"),
+        field("statement", $.var_decl),
+        field("statement", $.const_decl),
+        field("statement", $.while_stmt),
+        field("statement", $.for_in_stmt),
+        field("statement", $.if_else_stmt),
+        field("statement", $.return_stmt),
+        field("statement", $.assign_stmt),
+        field("statement", $.break_stmt),
+        field("statement", $.continue_stmt),
+        seq(field("statement", $.expression), ";"),
       ),
 
     var_decl: ($) =>
       seq(
         "VAR",
-        $.identifier,
-        optional(seq(":", $.type)),
-        optional(seq("=", $.expression)),
+        field("name", $.identifier),
+        optional(seq(":", field("type", $.type))),
+        optional(seq("=", field("value", $.expression))),
         ";",
       ),
     const_decl: ($) =>
       seq(
         "CONST",
-        $.identifier,
-        optional(seq(":", $.type)),
+        field("name", $.identifier),
+        optional(seq(":", field("type", $.type))),
         "=",
-        $.expression,
+        field("value", $.expression),
         ";",
       ),
-    while_stmt: ($) => seq("WHILE", "(", $.expression, ")", $.block),
+    while_stmt: ($) => seq("WHILE", "(", field("condition", $.expression), ")", field("body", $.block)),
     for_in_stmt: ($) =>
-      seq("FOR", "(", $.identifier, "IN", $.expression, ")", $.block),
+      seq("FOR", "(", field("variable", $.identifier), "IN", field("iterable", $.expression), ")", field("body", $.block)),
     if_else_stmt: ($) =>
       seq(
         "IF",
         "(",
-        $.expression,
+        field("condition", $.expression),
         ")",
-        $.block,
-        optional(seq("ELSE", $.block)),
+        field("consequence", $.block),
+        optional(seq("ELSE", field("alternative", $.block))),
       ),
-    return_stmt: ($) => seq("RETURN", $.expression, ";"),
-    assign_stmt: ($) => seq($.identifier, "=", $.expression, ";"),
+    return_stmt: ($) => seq("RETURN", field("expression", $.expression), ";"),
+    assign_stmt: ($) => seq(field("name", $.identifier), "=", field("value", $.expression), ";"),
     break_stmt: ($) => seq("BREAK", ";"),
     continue_stmt: ($) => seq("CONTINUE", ";"),
 
@@ -1246,14 +1279,14 @@ module.exports = grammar({
 
     type: ($) =>
       seq(
-        $.dotted_identifier,
+        field("name", $.dotted_identifier),
         optional(
           choice(
-            seq("<", commaSep1($.type), ">"), // generic type params: Array<String>
-            seq("(", commaSep1($.number), ")"), // precision params: Decimal(15,8)
+            seq("<", field("parameters", commaSep1($.type)), ">"), // generic type params: Array<String>
+            seq("(", field("precision", commaSep1($.number)), ")"), // precision params: Decimal(15,8)
           ),
         ),
-        optional("?"),
+        field("optional", optional("?")),
       ),
 
     primitive_type: ($) =>

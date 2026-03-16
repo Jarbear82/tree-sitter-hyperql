@@ -599,9 +599,10 @@ ALTER FIELD age SET TYPE Float;
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (type
-                (dotted_identifier
-                  (identifier))))))))))
+              (alter_field_set_type
+                (type
+                  (dotted_identifier
+                    (identifier)))))))))))
 
 ==================
 Alter Field Add Decorator Level 1
@@ -618,7 +619,8 @@ ALTER FIELD email ADD @index;
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (decorator))))))))
+              (alter_field_add_decorator
+                (decorator)))))))))
 
 ==================
 Alter Field Drop Decorator Level 1
@@ -635,7 +637,8 @@ ALTER FIELD email DROP @index;
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (decorator))))))))
+              (alter_field_drop_decorator
+                (decorator)))))))))
 
 ==================
 Alter Field Set Default Level 1
@@ -652,10 +655,11 @@ ALTER FIELD score SET DEFAULT 0;
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (expression
-                (primary_expression
-                  (literal
-                    (number)))))))))))
+              (alter_field_set_default
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))))))))
 
 ==================
 Alter Field Drop Default Level 1
@@ -671,7 +675,8 @@ ALTER FIELD score DROP DEFAULT;
           (dotted_identifier
             (identifier))
           (alter_field_ops
-            (alter_field_op)))))))
+            (alter_field_op
+              (alter_field_drop_default))))))))
 
 ==================
 Alter Field Batch Ops Level 2
@@ -692,16 +697,19 @@ ALTER FIELD score [
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (type
-                (dotted_identifier
-                  (identifier))))
+              (alter_field_set_type
+                (type
+                  (dotted_identifier
+                    (identifier)))))
             (alter_field_op
-              (decorator))
+              (alter_field_add_decorator
+                (decorator)))
             (alter_field_op
-              (expression
-                (primary_expression
-                  (literal
-                    (number)))))))))))
+              (alter_field_set_default
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))))))))
 
 ==================
 Alter Field Multiple Fields Level 3
@@ -722,26 +730,30 @@ ALTER FIELD [
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (type
-                (dotted_identifier
-                  (identifier))))))
+              (alter_field_set_type
+                (type
+                  (dotted_identifier
+                    (identifier)))))))
         (alter_field_entry
           (dotted_identifier
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (decorator))
+              (alter_field_add_decorator
+                (decorator)))
             (alter_field_op
-              (decorator))))
+              (alter_field_add_decorator
+                (decorator)))))
         (alter_field_entry
           (dotted_identifier
             (identifier))
           (alter_field_ops
             (alter_field_op
-              (expression
-                (primary_expression
-                  (literal
-                    (number)))))))))))
+              (alter_field_set_default
+                (expression
+                  (primary_expression
+                    (literal
+                      (number))))))))))))
 
 ==================
 Alter Node Add Field Level 1
@@ -2199,9 +2211,11 @@ ALTER [
               (identifier))
             (alter_field_ops
               (alter_field_op
-                (decorator))
+                (alter_field_add_decorator
+                  (decorator)))
               (alter_field_op
-                (decorator))))
+                (alter_field_add_decorator
+                  (decorator)))))
           (dotted_identifier
             (identifier))
           (alter_ops
@@ -2250,16 +2264,18 @@ ALTER [
               (identifier))
             (alter_field_ops
               (alter_field_op
-                (expression
-                  (primary_expression
-                    (literal
-                      (number)))))))
+                (alter_field_set_default
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number))))))))
           (alter_field_entry
             (dotted_identifier
               (identifier))
             (alter_field_ops
               (alter_field_op
-                (decorator))))
+                (alter_field_add_decorator
+                  (decorator)))))
           (dotted_identifier
             (identifier))
           (alter_ops
@@ -2287,19 +2303,21 @@ CREATE NODE alice: Person {
               (identifier))
             (create_body_block
               (create_assignment
-                (dotted_identifier
-                  (identifier))
-                (expression
-                  (primary_expression
-                    (literal
-                      (string)))))
+                (create_property_assignment
+                  (dotted_identifier
+                    (identifier))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))))
               (create_assignment
-                (dotted_identifier
-                  (identifier))
-                (expression
-                  (primary_expression
-                    (literal
-                      (number))))))))))))
+                (create_property_assignment
+                  (dotted_identifier
+                    (identifier))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (number)))))))))))))
 
 ==================
 Create Node Singular Minimal
@@ -2320,12 +2338,13 @@ CREATE NODE n: Dog {
               (identifier))
             (create_body_block
               (create_assignment
-                (dotted_identifier
-                  (identifier))
-                (expression
-                  (primary_expression
-                    (literal
-                      (string))))))))))))
+                (create_property_assignment
+                  (dotted_identifier
+                    (identifier))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))))))))))
 
 ==================
 Create Node Batch
@@ -2348,38 +2367,42 @@ CREATE NODE [
                 (identifier))
               (create_body_block
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (string)))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string))))))
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (number)))))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (number))))))))
             (create_node_entry
               (identifier)
               (dotted_identifier
                 (identifier))
               (create_body_block
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (string)))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string))))))
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (number)))))))))))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (number))))))))))))))
 
 ==================
 Create Edge Singular
@@ -2402,22 +2425,25 @@ CREATE EDGE e: Knows {
               (identifier))
             (create_body_block
               (create_assignment
-                (dotted_identifier
-                  (identifier))
-                (dotted_identifier
-                  (identifier)))
+                (create_role_assignment
+                  (dotted_identifier
+                    (identifier))
+                  (dotted_identifier
+                    (identifier))))
               (create_assignment
-                (dotted_identifier
-                  (identifier))
-                (dotted_identifier
-                  (identifier)))
+                (create_role_assignment
+                  (dotted_identifier
+                    (identifier))
+                  (dotted_identifier
+                    (identifier))))
               (create_assignment
-                (dotted_identifier
-                  (identifier))
-                (expression
-                  (primary_expression
-                    (literal
-                      (string))))))))))))
+                (create_property_assignment
+                  (dotted_identifier
+                    (identifier))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string)))))))))))))
 
 ==================
 Create Edge Batch
@@ -2440,30 +2466,34 @@ CREATE EDGE [
                 (identifier))
               (create_body_block
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (dotted_identifier
-                    (identifier)))
+                  (create_role_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (dotted_identifier
+                      (identifier))))
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (dotted_identifier
-                    (identifier)))))
+                  (create_role_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (dotted_identifier
+                      (identifier))))))
             (create_edge_entry
               (identifier)
               (dotted_identifier
                 (identifier))
               (create_body_block
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (dotted_identifier
-                    (identifier)))
+                  (create_role_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (dotted_identifier
+                      (identifier))))
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (dotted_identifier
-                    (identifier)))))))))))
+                  (create_role_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (dotted_identifier
+                      (identifier))))))))))))
 
 ==================
 Create Mixed Batch
@@ -2491,31 +2521,34 @@ CREATE [
                 (identifier))
               (create_body_block
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (string)))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string))))))
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (number)))))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (number))))))))
             (create_node_entry
               (identifier)
               (dotted_identifier
                 (identifier))
               (create_body_block
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (string)))))))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string))))))))))
         (create_item
           (create_edge_batch
             (create_edge_entry
@@ -2524,22 +2557,25 @@ CREATE [
                 (identifier))
               (create_body_block
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (dotted_identifier
-                    (identifier)))
+                  (create_role_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (dotted_identifier
+                      (identifier))))
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (dotted_identifier
-                    (identifier)))
+                  (create_role_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (dotted_identifier
+                      (identifier))))
                 (create_assignment
-                  (dotted_identifier
-                    (identifier))
-                  (expression
-                    (primary_expression
-                      (literal
-                        (string)))))))))))))
+                  (create_property_assignment
+                    (dotted_identifier
+                      (identifier))
+                    (expression
+                      (primary_expression
+                        (literal
+                          (string))))))))))))))
 
 ==================
 Create User Basic
@@ -8191,7 +8227,8 @@ SHOW ACCESS ROLES;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_access_roles))))
 
 ==================
 Show Users
@@ -8201,7 +8238,8 @@ SHOW USERS;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_users))))
 
 ==================
 Show Permissions For User
@@ -8212,7 +8250,8 @@ SHOW PERMISSIONS FOR alice;
 (source_file
   (statement
     (introspection_statement
-      (identifier))))
+      (show_permissions
+        (identifier)))))
 
 ==================
 Show Effective Permissions
@@ -8223,10 +8262,11 @@ SHOW EFFECTIVE PERMISSIONS FOR alice ON NAMESPACE Core.App;
 (source_file
   (statement
     (introspection_statement
-      (identifier)
-      (dotted_identifier
+      (show_effective_permissions
         (identifier)
-        (identifier)))))
+        (dotted_identifier
+          (identifier)
+          (identifier))))))
 
 ==================
 Show Namespace
@@ -8237,9 +8277,10 @@ SHOW NAMESPACE Core.Game;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)
-        (identifier)))))
+      (show_entity
+        (dotted_identifier
+          (identifier)
+          (identifier))))))
 
 ==================
 Show Schema
@@ -8250,8 +8291,9 @@ SHOW SCHEMA HRSchema;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (show_entity
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Show Field
@@ -8262,8 +8304,9 @@ SHOW FIELD email;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (show_entity
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Show Node Type
@@ -8274,8 +8317,9 @@ SHOW NODE Person;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (show_entity
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Show Edge Type
@@ -8286,8 +8330,9 @@ SHOW EDGE Employment;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (show_entity
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Show Prepared Statements
@@ -8297,7 +8342,8 @@ SHOW PREPARED STATEMENTS;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_prepared_statements))))
 
 ==================
 Show Node Types
@@ -8307,7 +8353,8 @@ SHOW NODE TYPES;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_node_types))))
 
 ==================
 Show Edge Types
@@ -8317,7 +8364,8 @@ SHOW EDGE TYPES;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_edge_types))))
 
 ==================
 Show Traits
@@ -8327,7 +8375,8 @@ SHOW TRAITS;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_traits))))
 
 ==================
 Show Trait
@@ -8338,8 +8387,9 @@ SHOW TRAIT Auditable;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (show_traits
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Show Views
@@ -8349,7 +8399,8 @@ SHOW VIEWS;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_views))))
 
 ==================
 Show View
@@ -8360,8 +8411,9 @@ SHOW VIEW ActiveUsers;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (show_views
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Show Functions
@@ -8371,7 +8423,8 @@ SHOW FUNCTIONS;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_functions))))
 
 ==================
 Show Function
@@ -8382,8 +8435,9 @@ SHOW FUNCTION FullName;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (show_functions
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Show Fields
@@ -8393,7 +8447,8 @@ SHOW FIELDS;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_fields))))
 
 ==================
 Show Materialized Views
@@ -8403,7 +8458,8 @@ SHOW MATERIALIZED VIEWS;
 
 (source_file
   (statement
-    (introspection_statement)))
+    (introspection_statement
+      (show_materialized_views))))
 
 ==================
 Validate Schema
@@ -8414,7 +8470,8 @@ VALIDATE SCHEMA HRSchema;
 (source_file
   (statement
     (introspection_statement
-      (identifier))))
+      (validate_schema
+        (identifier)))))
 
 ==================
 Validate View
@@ -8425,8 +8482,9 @@ VALIDATE VIEW ActiveUsers;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (validate_view
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Validate Constraint
@@ -8437,9 +8495,10 @@ VALIDATE CONSTRAINT Person.valid_age;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)
-        (identifier)))))
+      (validate_constraint
+        (dotted_identifier
+          (identifier)
+          (identifier))))))
 
 ==================
 Validate Materialized View
@@ -8450,8 +8509,9 @@ VALIDATE MATERIALIZED VIEW PersonByLastName;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (validate_materialized_view
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Rebuild Materialized View
@@ -8462,8 +8522,9 @@ REBUILD MATERIALIZED VIEW PersonByLastName;
 (source_file
   (statement
     (introspection_statement
-      (dotted_identifier
-        (identifier)))))
+      (rebuild_materialized_view
+        (dotted_identifier
+          (identifier))))))
 
 ==================
 Explain Query Default
@@ -9164,20 +9225,22 @@ CREATE NODE u:Auth.User {
               (identifier))
             (create_body_block
               (create_assignment
-                (dotted_identifier
-                  (identifier)
-                  (identifier))
-                (expression
-                  (primary_expression
-                    (literal
-                      (string)))))
+                (create_property_assignment
+                  (dotted_identifier
+                    (identifier)
+                    (identifier))
+                  (expression
+                    (primary_expression
+                      (literal
+                        (string))))))
               (create_assignment
-                (dotted_identifier
-                  (identifier)
-                  (identifier))
-                (dotted_identifier
-                  (identifier)
-                  (identifier))))))))))
+                (create_role_assignment
+                  (dotted_identifier
+                    (identifier)
+                    (identifier))
+                  (dotted_identifier
+                    (identifier)
+                    (identifier)))))))))))
 
 ==================
 Alter Namespaced Node
@@ -10121,8 +10184,10 @@ RETURN p.name, p.salary,
                                   (identifier)))
                               (identifier))))))
                     (window_frame
-                      (frame_bound)
-                      (frame_bound))))))
+                      (frame_bound
+                        (frame_bound_unbounded_preceding))
+                      (frame_bound
+                        (frame_bound_current_row)))))))
             (identifier)))))))
 
 ==================
@@ -10541,11 +10606,13 @@ RETURN p.name, p.score,
                               (identifier))))))
                     (window_frame
                       (frame_bound
-                        (expression
-                          (primary_expression
-                            (literal
-                              (number)))))
-                      (frame_bound))))))
+                        (frame_bound_expr_preceding
+                          (expression
+                            (primary_expression
+                              (literal
+                                (number))))))
+                      (frame_bound
+                        (frame_bound_current_row)))))))
             (identifier)))))))
 
 ==================
@@ -10607,6 +10674,8 @@ RETURN p.name,
                                   (identifier)))
                               (identifier))))))
                     (window_frame
-                      (frame_bound)
-                      (frame_bound))))))
+                      (frame_bound
+                        (frame_bound_unbounded_preceding))
+                      (frame_bound
+                        (frame_bound_current_row)))))))
             (identifier)))))))
