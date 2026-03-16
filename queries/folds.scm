@@ -20,6 +20,9 @@
 (mixed_create_batch) @fold
 (bulk_alter_block) @fold
 (schema_definition) @fold
+(union_definition) @fold
+(union_variant) @fold
+(access_role_definition) @fold
 (list_literal) @fold
 
 ; Folds your multi-line /* */ comments!

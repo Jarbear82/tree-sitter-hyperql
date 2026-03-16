@@ -23,6 +23,10 @@
 ; Colors the left-hand side of roles: husband, friend, owner
 (role_entry (dotted_identifier (identifier) @property))
 
+; MATCH (var) FROM ViewName
+(match_from_clause (identifier) @variable)
+(match_from_clause (dotted_identifier (identifier) @type))
+
 ; ── Types ──────────────────────────────────────────────────
 ; Colors the types targeted in an ALLOWS clause: Person, Dog
 (inline_allows_clause (dotted_identifier (identifier) @type))
@@ -37,6 +41,9 @@
 (edge_entry_full name: (dotted_identifier (identifier) @type))
 (struct_definition name: (dotted_identifier (identifier) @type))
 (trait_definition  name: (dotted_identifier (identifier) @type))
+(view_definition name: (dotted_identifier (identifier) @type))
+(materialized_view_definition name: (identifier) @type)
+(union_definition name: (dotted_identifier (identifier) @type))
 
 ; Enum type names (e.g., Priority)
 (enum_entry_full name: (dotted_identifier (identifier) @enum)) ; Using Zed's @enum
@@ -48,7 +55,8 @@
 (enum_body variants: (dotted_identifier (identifier) @variant))      ; Using Zed's @variant
 
 ; Union variant names
-(union_variant name: (identifier) @type)
+(union_variant name: (identifier) @variant)
+(union_variant types: (dotted_identifier (identifier) @type))
 
 ; EXTENDS targets
 (extends_clause (dotted_identifier (identifier) @type))
@@ -63,6 +71,7 @@
 ; Function name in definition
 (function_definition           name: (identifier) @function)
 (aggregate_function_definition name: (identifier) @function)
+(explain_statement (identifier) @function)
 
 ; Call sites
 (function_call name: (dotted_identifier (identifier) @function))
@@ -89,6 +98,22 @@
 (create_role_assignment name: (dotted_identifier (identifier) @property))
 (set_assignment      (identifier) @property)
 (pattern_prop        (dotted_identifier (identifier) @property))
+
+; Introspection & Validation target names
+(show_traits name: (dotted_identifier (identifier) @type))
+(show_views name: (dotted_identifier (identifier) @type))
+(show_functions name: (dotted_identifier (identifier) @function))
+(show_entity name: (dotted_identifier (identifier) @type))
+(validate_schema name: (identifier) @type)
+(validate_view name: (dotted_identifier (identifier) @type))
+(validate_constraint name: (dotted_identifier (identifier) @property))
+(validate_materialized_view name: (dotted_identifier (identifier) @type))
+(rebuild_materialized_view name: (dotted_identifier (identifier) @type))
+
+; Security / Access Policy targets
+(access_policy_definition name: (identifier) @property)
+(access_policy_definition target_name: (dotted_identifier (identifier) @type))
+(access_entry target_name: (dotted_identifier (identifier) @type))
 
 ; ── Properties / Object Keys ────────────────────────────────
 (object_literal (identifier) @property)
@@ -213,6 +238,8 @@
   "REBUILD"
   "EXPLAIN" "ANALYZE"
   "VERBOSE" "JSON"
+  ; Add these new v0.20 tokens:
+  "TYPES" "FIELDS" "USERS" "POLICIES"
 ] @keyword
 
 ; Scripting / control flow
